@@ -24,7 +24,7 @@
 
   <h2>💊 StockCare Pharmacy Store</h2>
   <div id="catalog">
-    <div id="status-msg">Loading inventory...</div>
+    <div id="status-msg">Loading stock...</div>
   </div>
 
   <div class="cart">
@@ -33,7 +33,7 @@
     <p style="font-size: 16px; margin-top: 15px;"><strong>Total: <span id="cart-total" style="color: #059669;">0</span> ETB</strong></p>
     
     <label style="font-size: 13px; font-weight: 600;">Customer Name:</label>
-    <input type="text" id="cust-name" placeholder="Enter your full name">
+    <input type="text" id="cust-name" placeholder="Enter full name">
 
     <button class="checkout-btn" onclick="submitOrder()">Place Order</button>
   </div>
@@ -47,7 +47,6 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    // Auto-fill customer name if Telegram user info is available
     if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
       const u = tg.initDataUnsafe.user;
       document.getElementById('cust-name').value = `${u.first_name || ''} ${u.last_name || ''}`.trim();
@@ -62,7 +61,8 @@
         if (data.status === 'success' && data.products && data.products.length > 0) {
           catalogData = data.products;
           data.products.forEach((prod, index) => {
-            const name = prod["Stock_Label"] || prod["Stock_ID"] || "Item";
+            // Reads Stock_Label and Selling_Price directly from Store_Stock
+            const name = prod["Stock_Label"] || prod["Stock_ID"] || "Stock Item";
             const price = parseFloat(prod["Selling_Price"] || 0);
             
             const card = document.createElement('div');
