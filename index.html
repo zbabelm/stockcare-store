@@ -66,9 +66,9 @@
         
         if (data.status === 'success' && data.products && data.products.length > 0) {
           catalogData = data.products;
-          data.products.forEach((prod, index) => {
-            const name = prod["Product Name"] || prod["Name"] || prod["Item"] || "Medicine";
-            const price = prod["Selling Price"] || prod["Price"] || 0;
+          data.Store_Stock.forEach((prod, index) => {
+            const name = prod["Item_ID"] || prod["Stock_Label"] || prod["Item_ID"] || "Medicine";
+            const price = prod["Selling_Price"] || prod["Selling_Price"] || 0;
             
             const card = document.createElement('div');
             card.className = 'card';
@@ -91,8 +91,8 @@
 
     function addToCart(index) {
       const item = catalogData[index];
-      const name = item["Product Name"] || item["Name"] || item["Item"] || "Medicine";
-      const price = parseFloat(item["Selling Price"] || item["Price"] || 0);
+      const name = item["Item_ID"] || item["Stock_Label"] || item["Item_ID"] || "Medicine";
+      const price = parseFloat(item["Selling_Price"] || item["Selling_Price"] || 0);
 
       const existing = cart.find(c => c.index === index);
       if (existing) {
