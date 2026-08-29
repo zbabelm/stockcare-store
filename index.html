@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StockCare Online Store</title>
+  <title>StockCare Storefront</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f6f8; margin: 0; padding: 15px; color: #1e293b; }
@@ -12,45 +12,21 @@
     .item-title { font-weight: 600; font-size: 15px; margin-bottom: 4px; color: #0f172a; word-break: break-all; }
     .item-price { color: #059669; font-size: 14px; font-weight: bold; }
     .btn { background: #2563eb; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; }
-    .cart { background: #fff; padding: 16px; border-radius: 12px; margin-top: 20px; border: 1px solid #e2e8f0; }
-    .cart h3 { margin-top: 0; font-size: 16px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; }
-    .cart-line { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px; }
-    input { width: 100%; padding: 10px; margin: 6px 0 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
-    .checkout-btn { background: #16a34a; color: #fff; border: none; padding: 12px; width: 100%; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; }
     #status-msg { text-align: center; color: #64748b; font-size: 14px; margin-top: 20px; }
   </style>
 </head>
 <body>
 
-  <h2>💊 StockCare Pharmacy Store</h2>
+  <h2>💊 StockCare Storefront</h2>
   <div id="catalog">
     <div id="status-msg">Loading stock...</div>
-  </div>
-
-  <div class="cart">
-    <h3>🛒 Your Order</h3>
-    <div id="cart-items" style="color: #64748b; font-size: 14px;">No items selected.</div>
-    <p style="font-size: 16px; margin-top: 15px;"><strong>Total: <span id="cart-total" style="color: #059669;">0</span> ETB</strong></p>
-    
-    <label style="font-size: 13px; font-weight: 600;">Customer Name:</label>
-    <input type="text" id="cust-name" placeholder="Enter full name">
-
-    <button class="checkout-btn" onclick="submitOrder()">Place Order</button>
   </div>
 
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxDwLSXmSgobcntmbgToDmkWjaF-oe-P5tvGEV2zonux6uTjAaXknBcmljm16daOVDmPQ/exec";
 
-    let catalogData = [];
-    let cart = [];
-
     const tg = window.Telegram.WebApp;
     tg.expand();
-
-    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-      const u = tg.initDataUnsafe.user;
-      document.getElementById('cust-name').value = `${u.first_name || ''} ${u.last_name || ''}`.trim();
-    }
 
     fetch(`${SCRIPT_URL}?action=getCatalog`)
       .then(res => res.json())
@@ -59,117 +35,25 @@
         catalogDiv.innerHTML = '';
         
         if (data.status === 'success' && data.products && data.products.length > 0) {
-          catalogData = data.products;
-
-          data.products.forEach((prod, index) => {
-            const name = prod.Display_Name || "Stock Item";
-            const price = parseFloat(prod.Selling_Price || 0);
-
+          data.products.forEach((prod) => {
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
               <div>
-                <div class="item-title">${name}</div>
-                <div class="item-price">${price} ETB</div>
+                <div class="item-title">Item ID: ${prod.Display_Name}</div>
+                <div class="item-price">${prod.Selling_Price} ETB</div>
               </div>
-              <button class="btn" onclick="addToCart(${index})">+ Add</button>
+              <button class="btn">Select</button>
             `;
             catalogDiv.appendChild(card);
           });
         } else {
-          catalogDiv.innerHTML = '<div id="status-msg">No stock items available.</div>';
+          catalogDiv.innerHTML = '<div id="status-msg">No stock items found in Store_Stock.</div>';
         }
       })
       .catch(err => {
         document.getElementById('catalog').innerHTML = '<div id="status-msg">Failed to connect to store.</div>';
       });
-
-    function addToCart(index) {
-      const item = catalogData[index];
-      const stockId = item.Stock_ID;
-      const name = item.Display_Name;
-      const price = item.Selling_Price;
-
-      const existing = cart.find(c => c.stockId === stockId);
-      if (existing) {
-        existing.quantity += 1;
-      } else {
-        cart.push({
-          stockId: stockId,
-          name: name,
-          price: price,
-          quantity: 1
-        });
-      }
-      renderCart();
-    }
-
-    function renderCart() {
-      const cartDiv = document.getElementById('cart-items');
-      const totalSpan = document.getElementById('cart-total');
-      
-      if (cart.length === 0) {
-        cartDiv.innerHTML = 'No items selected.';
-        cartDiv.style.color = '#64748b';
-        totalSpan.innerText = '0';
-        return;
-      }
-      
-      let html = '';
-      let total = 0;
-      cart.forEach(c => {
-        const subtotal = c.price * c.quantity;
-        total += subtotal;
-        html += `
-          <div class="cart-line">
-            <span>${c.name} x${c.quantity}</span>
-            <span><strong>${subtotal} ETB</strong></span>
-          </div>
-        `;
-      });
-      cartDiv.innerHTML = html;
-      totalSpan.innerText = total;
-    }
-
-    function submitOrder() {
-      const name = document.getElementById('cust-name').value.trim();
-
-      if (cart.length === 0) return alert('Your cart is empty!');
-      if (!name) return alert('Please enter customer name.');
-
-      const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-      const orderPayload = {
-        action: "createOrder",
-        order: {
-          customerName: name,
-          locationId: "LOC-1",
-          totalAmount: totalAmount,
-          items: cart
-        }
-      };
-
-      const btn = document.querySelector('.checkout-btn');
-      btn.innerText = "Processing...";
-      btn.disabled = true;
-
-      fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify(orderPayload)
-      })
-      .then(res => res.json())
-      .then(res => {
-        alert('Order submitted successfully!');
-        cart = [];
-        renderCart();
-        tg.close();
-      })
-      .catch(err => {
-        alert('Error placing order.');
-        btn.innerText = "Place Order";
-        btn.disabled = false;
-      });
-    }
   </script>
 </body>
 </html>
