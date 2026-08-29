@@ -9,7 +9,7 @@
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f6f8; margin: 0; padding: 15px; color: #1e293b; }
     h2 { color: #0f172a; margin-top: 0; font-size: 20px; text-align: center; margin-bottom: 15px; }
     .card { background: #fff; padding: 14px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center; }
-    .item-title { font-weight: 600; font-size: 15px; margin-bottom: 4px; color: #0f172a; }
+    .item-title { font-weight: 600; font-size: 15px; margin-bottom: 4px; color: #0f172a; word-break: break-all; }
     .item-price { color: #059669; font-size: 14px; font-weight: bold; }
     .btn { background: #2563eb; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; }
     .cart { background: #fff; padding: 16px; border-radius: 12px; margin-top: 20px; border: 1px solid #e2e8f0; }
@@ -52,16 +52,6 @@
       document.getElementById('cust-name').value = `${u.first_name || ''} ${u.last_name || ''}`.trim();
     }
 
-    // Helper function to dynamically pull property regardless of exact key casing or space
-    function getProp(obj, keys) {
-      for (let k of keys) {
-        if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') {
-          return obj[k];
-        }
-      }
-      return null;
-    }
-
     fetch(`${SCRIPT_URL}?action=getCatalog`)
       .then(res => res.json())
       .then(data => {
@@ -72,16 +62,14 @@
           catalogData = data.products;
 
           data.products.forEach((prod, index) => {
-            // Evaluates Virtual Column name fields with fallbacks
-            const rawName = getProp(prod, ["Stock_Label", "Stock Label", "Item_ID", "Item_id", "Stock_ID"]) || "Stock Item";
-            const rawPrice = getProp(prod, ["Selling_Price", "Selling Price", "Price", "Unit_Price"]) || 0;
-            const price = parseFloat(rawPrice);
+            const name = prod.Display_Name || "Stock Item";
+            const price = parseFloat(prod.Selling_Price || 0);
 
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
               <div>
-                <div class="item-title">${rawName}</div>
+                <div class="item-title">${name}</div>
                 <div class="item-price">${price} ETB</div>
               </div>
               <button class="btn" onclick="addToCart(${index})">+ Add</button>
@@ -98,9 +86,9 @@
 
     function addToCart(index) {
       const item = catalogData[index];
-      const stockId = getProp(item, ["Stock_ID", "Stock ID", "id"]) || "";
-      const name = getProp(item, ["Stock_Label", "Stock Label", "Item_ID", "Item_id", "Stock_ID"]) || stockId;
-      const price = parseFloat(getProp(item, ["Selling_Price", "Selling Price", "Price", "Unit_Price"]) || 0);
+      const stockId = item.Stock_ID;
+      const name = item.Display_Name;
+      const price = item.Selling_Price;
 
       const existing = cart.find(c => c.stockId === stockId);
       if (existing) {
