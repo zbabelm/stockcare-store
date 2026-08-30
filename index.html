@@ -28,7 +28,10 @@
     .card { background: #fff; padding: 12px 14px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center; }
     .item-title { font-weight: 600; font-size: 14px; margin-bottom: 2px; color: #0f172a; }
     .item-code { color: #64748b; font-size: 11px; margin-bottom: 2px; }
-    .item-qty { color: #059669; font-size: 12px; font-weight: 600; }
+    .item-price { font-weight: 700; font-size: 13px; color: #2563eb; margin-bottom: 2px; }
+    .item-meta { display: flex; gap: 10px; align-items: center; }
+    .item-qty { color: #059669; font-size: 11px; font-weight: 600; }
+    .item-expiry { color: #dc2626; font-size: 11px; font-weight: 500; }
     
     /* Quantity Controls */
     .btn-add { background: #2563eb; color: #fff; border: none; padding: 7px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
@@ -113,6 +116,13 @@
       renderCatalog();
     });
 
+    // Format Expiry Date to readable YYYY-MM-DD format if present
+    function formatExpiry(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0];
+    }
+
     // 5. Render Products based on Search + Category Filter
     function renderCatalog() {
       const catalogDiv = document.getElementById('catalog');
@@ -136,6 +146,9 @@
         const itemId = prod.item_ID;
         const currentQty = cart[itemId] ? cart[itemId].qty : 0;
         const maxQty = parseFloat(prod.Total_Qty_Bridge || 0);
+        
+        const price = prod.Selling_Price ? parseFloat(prod.Selling_Price).toFixed(2) : '0.00';
+        const expiry = formatExpiry(prod.Expiry_Date);
 
         const card = document.createElement('div');
         card.className = 'card';
@@ -143,7 +156,11 @@
           <div>
             <div class="item-code">${prod.item_code || ''}</div>
             <div class="item-title">${prod.Item_Name || 'Unnamed Item'}</div>
-            <div class="item-qty">In Stock: ${maxQty}</div>
+            <div class="item-price">${price} ETB</div>
+            <div class="item-meta">
+              <span class="item-qty">In Stock: ${maxQty}</span>
+              ${expiry ? `<span class="item-expiry">Exp: ${expiry}</span>` : ''}
+            </div>
           </div>
           <div id="controls-${itemId}">
             ${currentQty === 0 
