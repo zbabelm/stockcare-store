@@ -9,7 +9,7 @@
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; height: 100%; background: #f4f6f8; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #1e293b; }
     
-    /* Main Content Container with bottom padding so bottom bar never covers products */
+    /* Main Content Container */
     .app-container { padding: 12px; padding-bottom: 90px; min-height: 100vh; }
 
     /* Top Header & Cart Bar */
@@ -52,18 +52,24 @@
     /* Cart Modal / Sheet */
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6); z-index: 200; display: none; opacity: 0; transition: opacity 0.2s ease; }
     .modal-overlay.active { display: block; opacity: 1; }
-    .cart-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top-left-radius: 20px; border-top-right-radius: 20px; max-height: 88vh; display: flex; flex-direction: column; z-index: 201; transform: translateY(100%); transition: transform 0.25s ease; padding: 16px; }
+    .cart-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top-left-radius: 20px; border-top-right-radius: 20px; max-height: 90vh; display: flex; flex-direction: column; z-index: 201; transform: translateY(100%); transition: transform 0.25s ease; padding: 16px; }
     .modal-overlay.active .cart-sheet { transform: translateY(0); }
     
     .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
     .sheet-title { font-size: 16px; font-weight: 700; margin: 0; color: #0f172a; }
     .btn-close { background: #f1f5f9; border: none; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; cursor: pointer; }
 
-    .cart-items-list { overflow-y: auto; max-height: 25vh; margin-bottom: 12px; }
-    .cart-item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f8fafc; }
-    .cart-item-info { flex: 1; }
-    .cart-item-name { font-weight: 600; font-size: 13px; color: #0f172a; }
-    .cart-item-subtotal { font-size: 12px; color: #2563eb; font-weight: 600; }
+    .cart-items-list { overflow-y: auto; max-height: 25vh; margin-bottom: 10px; padding-right: 4px; }
+    .cart-item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+    .cart-item-info { flex: 1; margin-right: 10px; }
+    .cart-item-name { font-weight: 600; font-size: 13px; color: #0f172a; margin-bottom: 2px; }
+    .cart-item-details { font-size: 11px; color: #64748b; }
+    .cart-item-subtotal { font-weight: 700; font-size: 12px; color: #2563eb; margin-top: 2px; }
+
+    /* Modal Grand Total Box */
+    .cart-summary-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .cart-summary-label { font-size: 13px; font-weight: 600; color: #475569; }
+    .cart-summary-value { font-size: 16px; font-weight: 800; color: #0f172a; }
 
     /* Order Form */
     .form-container { overflow-y: auto; }
@@ -130,6 +136,12 @@
       <!-- Selected Items -->
       <div class="cart-items-list" id="cartItemsContainer">
         <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Grand Total Summary Box inside Modal -->
+      <div class="cart-summary-box">
+        <span class="cart-summary-label">Grand Total (<span id="modalItemCount">0</span> items)</span>
+        <span class="cart-summary-value" id="modalGrandTotal">0.00 ETB</span>
       </div>
 
       <!-- Order Details Form -->
@@ -356,22 +368,31 @@
 
       if (Object.keys(cart).length === 0) {
         container.innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">Cart is empty.</div>';
+        document.getElementById('modalItemCount').textContent = '0';
+        document.getElementById('modalGrandTotal').textContent = '0.00 ETB';
         closeCartModal();
         return;
       }
 
+      let grandTotal = 0;
+      let totalItemsCount = 0;
+
       Object.values(cart).forEach(entry => {
         const prod = entry.product;
         const price = parseFloat(prod.Selling_Price || 0);
-        const subtotal = (price * entry.qty).toFixed(2);
+        const subtotal = price * entry.qty;
         const maxQty = parseFloat(prod.Total_Qty_Bridge || 0);
+
+        grandTotal += subtotal;
+        totalItemsCount += entry.qty;
 
         const row = document.createElement('div');
         row.className = 'cart-item-row';
         row.innerHTML = `
           <div class="cart-item-info">
             <div class="cart-item-name">${prod.Item_Name}</div>
-            <div class="cart-item-subtotal">${subtotal} ETB (${price.toFixed(2)} × ${entry.qty})</div>
+            <div class="cart-item-details">${price.toFixed(2)} ETB × ${entry.qty}</div>
+            <div class="cart-item-subtotal">Subtotal: ${subtotal.toFixed(2)} ETB</div>
           </div>
           <div class="qty-controls">
             <button class="btn-qty" onclick="updateQty('${prod.item_ID}', -1, ${maxQty})">-</button>
@@ -381,6 +402,10 @@
         `;
         container.appendChild(row);
       });
+
+      // Update Modal Grand Total Summary Display
+      document.getElementById('modalItemCount').textContent = totalItemsCount;
+      document.getElementById('modalGrandTotal').textContent = `${grandTotal.toFixed(2)} ETB`;
     }
 
     // 9. GPS Capture
