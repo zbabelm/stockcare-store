@@ -1,531 +1,481 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StockCare Storefront</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; height: 100%; background: #f4f6f8; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #1e293b; }
-    
-    /* Main Content Container */
-    .app-container { padding: 12px; padding-bottom: 90px; min-height: 100vh; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockCare Storefront</title>
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: var(--tg-theme-bg-color, #f4f6f8);
+            --text-color: var(--tg-theme-text-color, #222222);
+            --hint-color: var(--tg-theme-hint-color, #8e8e93);
+            --link-color: var(--tg-theme-link-color, #007aff);
+            --button-color: var(--tg-theme-button-color, #007aff);
+            --button-text-color: var(--tg-theme-button-text-color, #ffffff);
+            --secondary-bg: var(--tg-theme-secondary-bg-color, #ffffff);
+            --card-bg: #ffffff;
+            --border-color: #e5e5ea;
+        }
 
-    /* Top Header & Cart Bar */
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .header h2 { margin: 0; font-size: 18px; color: #0f172a; }
-    .cart-badge { background: #2563eb; color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            -webkit-user-select: none;
+            user-select: none;
+        }
 
-    /* Search Input */
-    .search-box { width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 14px; outline: none; margin-bottom: 12px; background: #fff; }
-    .search-box:focus { border-color: #2563eb; }
+        .container {
+            padding: 12px;
+            padding-bottom: 90px;
+        }
 
-    /* Category Chips */
-    .categories { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none; }
-    .categories::-webkit-scrollbar { display: none; }
-    .chip { background: #e2e8f0; color: #475569; padding: 6px 14px; border-radius: 16px; font-size: 12px; font-weight: 600; white-space: nowrap; cursor: pointer; border: none; }
-    .chip.active { background: #0f172a; color: #fff; }
+        .header {
+            position: sticky;
+            top: 0;
+            background: var(--bg-color);
+            z-index: 100;
+            padding-bottom: 8px;
+        }
 
-    /* Product Cards */
-    .card { background: #fff; padding: 12px 14px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center; }
-    .item-title { font-weight: 600; font-size: 14px; margin-bottom: 2px; color: #0f172a; }
-    .item-code { color: #64748b; font-size: 11px; margin-bottom: 2px; }
-    .item-price { font-weight: 700; font-size: 13px; color: #2563eb; margin-bottom: 2px; }
-    .item-meta { display: flex; gap: 10px; align-items: center; }
-    .item-qty { color: #059669; font-size: 11px; font-weight: 600; }
-    .item-expiry { color: #dc2626; font-size: 11px; font-weight: 500; }
-    
-    /* Quantity Controls */
-    .btn-add { background: #2563eb; color: #fff; border: none; padding: 7px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
-    .qty-controls { display: flex; align-items: center; gap: 8px; }
-    .btn-qty { background: #f1f5f9; border: 1px solid #cbd5e1; width: 28px; height: 28px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #0f172a; }
-    .qty-count { font-weight: 600; font-size: 13px; min-width: 16px; text-align: center; }
+        .search-bar {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--secondary-bg);
+            color: var(--text-color);
+            box-sizing: border-box;
+            font-size: 15px;
+            outline: none;
+        }
 
-    /* PERMANENT FLOATING BOTTOM BAR */
-    .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; padding: 12px 16px; box-shadow: 0 -4px 16px rgba(0,0,0,0.12); display: flex; justify-content: space-between; align-items: center; z-index: 150; border-top: 1px solid #e2e8f0; }
-    .total-display { font-size: 12px; color: #64748b; font-weight: 500; }
-    .total-amount { font-size: 18px; font-weight: 700; color: #0f172a; display: block; margin-top: 2px; }
-    .btn-checkout { background: #2563eb; color: #fff; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; }
-    .btn-checkout:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .categories {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 10px 0;
+            scrollbar-width: none;
+        }
 
-    /* Cart Modal / Sheet */
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6); z-index: 200; display: none; opacity: 0; transition: opacity 0.2s ease; }
-    .modal-overlay.active { display: block; opacity: 1; }
-    .cart-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top-left-radius: 20px; border-top-right-radius: 20px; max-height: 90vh; display: flex; flex-direction: column; z-index: 201; transform: translateY(100%); transition: transform 0.25s ease; padding: 16px; }
-    .modal-overlay.active .cart-sheet { transform: translateY(0); }
-    
-    .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
-    .sheet-title { font-size: 16px; font-weight: 700; margin: 0; color: #0f172a; }
-    .btn-close { background: #f1f5f9; border: none; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; cursor: pointer; }
+        .categories::-webkit-scrollbar {
+            display: none;
+        }
 
-    .cart-items-list { overflow-y: auto; max-height: 25vh; margin-bottom: 10px; padding-right: 4px; }
-    .cart-item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
-    .cart-item-info { flex: 1; margin-right: 10px; }
-    .cart-item-name { font-weight: 600; font-size: 13px; color: #0f172a; margin-bottom: 2px; }
-    .cart-item-details { font-size: 11px; color: #64748b; }
-    .cart-item-subtotal { font-weight: 700; font-size: 12px; color: #2563eb; margin-top: 2px; }
+        .chip {
+            padding: 6px 14px;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 13px;
+            white-space: nowrap;
+            color: var(--hint-color);
+            cursor: pointer;
+        }
 
-    /* Modal Grand Total Box */
-    .cart-summary-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-    .cart-summary-label { font-size: 13px; font-weight: 600; color: #475569; }
-    .cart-summary-value { font-size: 16px; font-weight: 800; color: #0f172a; }
+        .chip.active {
+            background: var(--button-color);
+            color: var(--button-text-color);
+            border-color: var(--button-color);
+        }
 
-    /* Order Form */
-    .form-container { overflow-y: auto; }
-    .form-group { margin-bottom: 10px; }
-    .form-label { display: block; font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase; }
-    .form-input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; outline: none; }
-    .form-input:focus { border-color: #2563eb; }
-    
-    .btn-location { background: #e0e7ff; color: #3730a3; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 10px;
+        }
 
-    /* Success Toast */
-    .success-alert { display: none; background: #10b981; color: #fff; padding: 12px 16px; border-radius: 10px; text-align: center; font-weight: 600; font-size: 13px; margin-bottom: 12px; }
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
 
-    #status-msg { text-align: center; color: #64748b; font-size: 14px; margin-top: 30px; }
-  </style>
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            line-height: 1.2;
+        }
+
+        .card-meta {
+            font-size: 11px;
+            color: var(--hint-color);
+            margin-bottom: 8px;
+        }
+
+        .card-price {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--link-color);
+            margin-bottom: 10px;
+        }
+
+        .add-btn {
+            background: var(--button-color);
+            color: var(--button-text-color);
+            border: none;
+            border-radius: 8px;
+            padding: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+        }
+
+        .qty-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-color);
+            border-radius: 8px;
+            padding: 2px;
+        }
+
+        .qty-btn {
+            background: var(--secondary-bg);
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            font-weight: bold;
+            color: var(--text-color);
+            cursor: pointer;
+        }
+
+        .qty-val {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* Modal Overlay */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            align-items: flex-end;
+        }
+
+        .modal-content {
+            background: var(--secondary-bg);
+            width: 100%;
+            border-radius: 16px 16px 0 0;
+            padding: 20px;
+            box-sizing: border-box;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            color: var(--hint-color);
+            margin-bottom: 4px;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        .loader {
+            text-align: center;
+            padding: 40px;
+            color: var(--hint-color);
+        }
+    </style>
 </head>
 <body>
 
-  <div class="app-container">
-    <!-- Top Header -->
-    <div class="header">
-      <h2>💊 StockCare Store</h2>
-      <div class="cart-badge" onclick="openCartModal()">
-        🛒 Cart (<span id="cartCount">0</span>)
-      </div>
-    </div>
-
-    <!-- Inline Success Notification Banner -->
-    <div id="successAlert" class="success-alert">
-      🎉 Order placed successfully! Confirmation sent to your chat.
-    </div>
-
-    <!-- Search Input -->
-    <input type="text" id="searchInput" class="search-box" placeholder="Search by item name or code...">
-
-    <!-- Category Filter Buttons -->
-    <div class="categories" id="categoryContainer">
-      <button class="chip active" onclick="filterCategory('All', this)">All</button>
-    </div>
-
-    <!-- Catalog List -->
-    <div id="catalog">
-      <div id="status-msg">Loading available stock...</div>
-    </div>
-  </div>
-
-  <!-- FLOATING ALWAYS-VISIBLE BOTTOM BAR -->
-  <div class="bottom-bar">
-    <div class="total-display">
-      Total Amount
-      <span class="total-amount" id="barTotal">0.00 ETB</span>
-    </div>
-    <button class="btn-checkout" id="btnBarCheckout" onclick="openCartModal()" disabled>View Cart</button>
-  </div>
-
-  <!-- Cart Modal / Checkout Sheet -->
-  <div class="modal-overlay" id="cartModal">
-    <div class="cart-sheet">
-      <div class="sheet-header">
-        <h3 class="sheet-title">Your Order Summary</h3>
-        <button class="btn-close" onclick="closeCartModal()">✕</button>
-      </div>
-
-      <!-- Selected Items -->
-      <div class="cart-items-list" id="cartItemsContainer">
-        <!-- Rendered dynamically -->
-      </div>
-
-      <!-- Grand Total Summary Box inside Modal -->
-      <div class="cart-summary-box">
-        <span class="cart-summary-label">Grand Total (<span id="modalItemCount">0</span> items)</span>
-        <span class="cart-summary-value" id="modalGrandTotal">0.00 ETB</span>
-      </div>
-
-      <!-- Order Details Form -->
-      <div class="form-container">
-        <div class="form-group">
-          <label class="form-label">Full Name *</label>
-          <input type="text" id="customerName" class="form-input" placeholder="e.g. Abebe Kebede">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Phone Number *</label>
-          <input type="tel" id="customerPhone" class="form-input" placeholder="09XXXXXXXX">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Delivery Address *</label>
-          <input type="text" id="deliveryAddress" class="form-input" placeholder="Subcity, Woreda, Landmark, etc.">
-          <button class="btn-location" id="locationBtn" onclick="captureGPSLocation(true)">📍 Detect My Current GPS Location</button>
-          <input type="hidden" id="gpsCoordinates">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Order Notes (Optional)</label>
-          <input type="text" id="orderNotes" class="form-input" placeholder="Special delivery instructions...">
-        </div>
-
-        <button class="btn-checkout" id="btnSubmitOrder" style="width: 100%; margin-top: 8px;" onclick="submitOrder()">Place Order</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxNKUCpP_KBfL1stn44C7DlQm4MYk3X9u2PVCyYlvnxNL3VCBWRukaeHnwoXj_VFDGGVw/exec";
-
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-
-    // Store user ID for notifications
-    const telegramUserId = tg.initDataUnsafe?.user?.id || null;
-
-    // Auto-fill Name from Telegram User Profile
-    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-      const user = tg.initDataUnsafe.user;
-      const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
-      if (fullName) {
-        document.addEventListener('DOMContentLoaded', () => {
-          const nameField = document.getElementById('customerName');
-          if (nameField) nameField.value = fullName;
-        });
-      }
-    }
-
-    let allProducts = [];
-    let activeCategory = 'All';
-    let cart = {}; 
-
-    // 1. Fetch Catalog
-    fetch(`${SCRIPT_URL}?action=getCatalog`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === 'success' && data.products && data.products.length > 0) {
-          allProducts = data.products.filter(prod => {
-            const qtyAvailable = parseFloat(prod.Total_Qty_Bridge || 0) > 0;
-            const isNotExpired = (prod.Stock_Status || '').toLowerCase() !== 'expired';
-            return qtyAvailable && isNotExpired;
-          });
-
-          buildCategoryChips(allProducts);
-          renderCatalog();
-        } else {
-          document.getElementById('catalog').innerHTML = '<div id="status-msg">No products available.</div>';
-        }
-      })
-      .catch(() => {
-        document.getElementById('catalog').innerHTML = '<div id="status-msg">Failed to load catalog.</div>';
-      });
-
-    // 2. Build Category Chips
-    function buildCategoryChips(products) {
-      const container = document.getElementById('categoryContainer');
-      const categories = ['All', ...new Set(products.map(p => p.Category || 'Uncategorized').filter(Boolean))];
-
-      container.innerHTML = categories.map(cat => `
-        <button class="chip ${cat === 'All' ? 'active' : ''}" onclick="filterCategory('${cat}', this)">${cat}</button>
-      `).join('');
-    }
-
-    // 3. Filter Category
-    function filterCategory(cat, btn) {
-      activeCategory = cat;
-      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-      btn.classList.add('active');
-      renderCatalog();
-    }
-
-    // 4. Search Filter
-    document.getElementById('searchInput').addEventListener('input', () => {
-      renderCatalog();
-    });
-
-    function formatExpiry(dateStr) {
-      if (!dateStr) return '';
-      const d = new Date(dateStr);
-      return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0];
-    }
-
-    // 5. Render Catalog
-    function renderCatalog() {
-      const catalogDiv = document.getElementById('catalog');
-      const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-
-      const filtered = allProducts.filter(prod => {
-        const matchesCategory = (activeCategory === 'All') || ((prod.Category || 'Uncategorized') === activeCategory);
-        const matchesSearch = (prod.Item_Name || '').toLowerCase().includes(searchTerm) || 
-                              (prod.item_code || '').toLowerCase().includes(searchTerm);
-        return matchesCategory && matchesSearch;
-      });
-
-      catalogDiv.innerHTML = '';
-
-      if (filtered.length === 0) {
-        catalogDiv.innerHTML = '<div id="status-msg">No matching items found.</div>';
-        return;
-      }
-
-      filtered.forEach(prod => {
-        const itemId = prod.item_ID;
-        const currentQty = cart[itemId] ? cart[itemId].qty : 0;
-        const maxQty = parseFloat(prod.Total_Qty_Bridge || 0);
-        
-        const price = prod.Selling_Price ? parseFloat(prod.Selling_Price).toFixed(2) : '0.00';
-        const expiry = formatExpiry(prod.Expiry_Date);
-
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-          <div>
-            <div class="item-code">${prod.item_code || ''}</div>
-            <div class="item-title">${prod.Item_Name || 'Unnamed Item'}</div>
-            <div class="item-price">${price} ETB</div>
-            <div class="item-meta">
-              <span class="item-qty">In Stock: ${maxQty}</span>
-              ${expiry ? `<span class="item-expiry">Exp: ${expiry}</span>` : ''}
+    <div class="container">
+        <div class="header">
+            <input type="text" id="searchInput" class="search-bar" placeholder="Search medications..." oninput="filterCatalog()">
+            <div class="categories" id="categoryChips">
+                <div class="chip active" onclick="selectCategory('ALL', this)">All</div>
             </div>
-          </div>
-          <div id="controls-${itemId}">
-            ${currentQty === 0 
-              ? `<button class="btn-add" onclick="updateQty('${itemId}', 1, ${maxQty})">Add</button>`
-              : `<div class="qty-controls">
-                  <button class="btn-qty" onclick="updateQty('${itemId}', -1, ${maxQty})">-</button>
-                  <span class="qty-count">${currentQty}</span>
-                  <button class="btn-qty" onclick="updateQty('${itemId}', 1, ${maxQty})">+</button>
-                </div>`
-            }
-          </div>
-        `;
-        catalogDiv.appendChild(card);
-      });
-    }
+        </div>
 
-    // 6. Update Cart Quantities
-    function updateQty(itemId, change, maxQty) {
-      const prod = allProducts.find(p => p.item_ID === itemId);
-      if (!prod) return;
+        <div id="loader" class="loader">Loading inventory...</div>
+        <div class="grid" id="catalogGrid"></div>
+    </div>
 
-      if (!cart[itemId]) {
-        cart[itemId] = { product: prod, qty: 0 };
-      }
+    <!-- Checkout Modal -->
+    <div id="checkoutModal" class="modal">
+        <div class="modal-content">
+            <h3>Order Details</h3>
+            <div id="cartSummary"></div>
+            <hr style="border:0; border-top:1px solid var(--border-color); margin:15px 0;">
+            <div class="form-group">
+                <label>Customer Name</label>
+                <input type="text" id="custName" required>
+            </div>
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="tel" id="custPhone" placeholder="0911223344" required>
+            </div>
+            <div class="form-group">
+                <label>Delivery Address / Notes</label>
+                <textarea id="custAddress" rows="2"></textarea>
+            </div>
+            <button class="add-btn" style="padding:12px; margin-top:10px;" onclick="submitOrder()">Confirm Order</button>
+            <button class="add-btn" style="padding:12px; margin-top:6px; background:transparent; color:var(--hint-color);" onclick="closeCheckout()">Cancel</button>
+        </div>
+    </div>
 
-      const newQty = cart[itemId].qty + change;
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
 
-      if (newQty > maxQty) {
-        if (tg.showAlert) { tg.showAlert(`Only ${maxQty} items available in stock.`); } else { alert(`Only ${maxQty} items available in stock.`); }
-        return;
-      }
+        // Updated API endpoint worker URL
+        const WORKER_URL = 'https://stockcare-bot.zbabelm.workers.dev/';
 
-      if (newQty <= 0) {
-        delete cart[itemId];
-      } else {
-        cart[itemId].qty = newQty;
-      }
+        let fullCatalog = [];
+        let filteredCatalog = [];
+        let cart = {}; // { itemId: { item, qty } }
+        let selectedCategory = 'ALL';
 
-      updateTotals();
-      renderCatalog();
-      if (document.getElementById('cartModal').classList.contains('active')) {
-        renderCartModalItems();
-      }
-    }
+        async function init() {
+            try {
+                const response = await fetch(`${WORKER_URL}?action=getCatalog`);
+                const data = await response.json();
+                
+                // Filter out out-of-stock or expired items
+                fullCatalog = data.filter(item => {
+                    const hasStock = (item.Total_Qty_Bridge || item.Quantity || 0) > 0;
+                    const isNotExpired = item.Status !== 'expired';
+                    return hasStock && isNotExpired;
+                });
 
-    // 7. Recalculate Totals (Updates Floating Bar continuously)
-    function updateTotals() {
-      let totalItems = 0;
-      let grandTotal = 0;
-
-      Object.values(cart).forEach(entry => {
-        totalItems += entry.qty;
-        const price = parseFloat(entry.product.Selling_Price || 0);
-        grandTotal += price * entry.qty;
-      });
-
-      document.getElementById('cartCount').textContent = totalItems;
-      document.getElementById('barTotal').textContent = `${grandTotal.toFixed(2)} ETB`;
-      
-      const btnCheckout = document.getElementById('btnBarCheckout');
-      btnCheckout.disabled = totalItems === 0;
-      btnCheckout.textContent = totalItems > 0 ? `View Cart (${totalItems})` : 'View Cart';
-    }
-
-    // 8. Modal Handlers
-    function openCartModal() {
-      if (Object.keys(cart).length === 0) return;
-      renderCartModalItems();
-      document.getElementById('cartModal').classList.add('active');
-      captureGPSLocation(false);
-    }
-
-    function closeCartModal() {
-      document.getElementById('cartModal').classList.remove('active');
-    }
-
-    function renderCartModalItems() {
-      const container = document.getElementById('cartItemsContainer');
-      container.innerHTML = '';
-
-      if (Object.keys(cart).length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">Cart is empty.</div>';
-        document.getElementById('modalItemCount').textContent = '0';
-        document.getElementById('modalGrandTotal').textContent = '0.00 ETB';
-        closeCartModal();
-        return;
-      }
-
-      let grandTotal = 0;
-      let totalItemsCount = 0;
-
-      Object.values(cart).forEach(entry => {
-        const prod = entry.product;
-        const price = parseFloat(prod.Selling_Price || 0);
-        const subtotal = price * entry.qty;
-        const maxQty = parseFloat(prod.Total_Qty_Bridge || 0);
-
-        grandTotal += subtotal;
-        totalItemsCount += entry.qty;
-
-        const row = document.createElement('div');
-        row.className = 'cart-item-row';
-        row.innerHTML = `
-          <div class="cart-item-info">
-            <div class="cart-item-name">${prod.Item_Name}</div>
-            <div class="cart-item-details">${price.toFixed(2)} ETB × ${entry.qty}</div>
-            <div class="cart-item-subtotal">Subtotal: ${subtotal.toFixed(2)} ETB</div>
-          </div>
-          <div class="qty-controls">
-            <button class="btn-qty" onclick="updateQty('${prod.item_ID}', -1, ${maxQty})">-</button>
-            <span class="qty-count">${entry.qty}</span>
-            <button class="btn-qty" onclick="updateQty('${prod.item_ID}', 1, ${maxQty})">+</button>
-          </div>
-        `;
-        container.appendChild(row);
-      });
-
-      // Update Modal Grand Total Summary Display
-      document.getElementById('modalItemCount').textContent = totalItemsCount;
-      document.getElementById('modalGrandTotal').textContent = `${grandTotal.toFixed(2)} ETB`;
-    }
-
-    // 9. GPS Capture
-    function captureGPSLocation(isManualClick = false) {
-      const btn = document.getElementById('locationBtn');
-      const gpsField = document.getElementById('gpsCoordinates');
-      const addressField = document.getElementById('deliveryAddress');
-
-      if (gpsField.value && !isManualClick) return;
-
-      if ("geolocation" in navigator) {
-        if (isManualClick) btn.textContent = "⏳ Locating...";
-
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            const mapUrl = `https://maps.google.com/?q=${lat},${lng}`;
-            
-            gpsField.value = mapUrl;
-            if (!addressField.value) {
-              addressField.value = `GPS Pin: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                buildCategories();
+                filterCatalog();
+                document.getElementById('loader').style.display = 'none';
+            } catch (err) {
+                document.getElementById('loader').innerText = 'Failed to load catalog. Please try again.';
+                console.error(err);
             }
 
-            btn.textContent = "✅ Location Attached!";
-            btn.style.background = "#d1fae5";
-            btn.style.color = "#065f46";
-          },
-          () => {
-            if (isManualClick) {
-              alert("Unable to detect GPS. Please enter your address manually.");
-              btn.textContent = "📍 Retry Location Detection";
+            // Pre-fill user data from Telegram context if available
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                const u = tg.initDataUnsafe.user;
+                document.getElementById('custName').value = `${u.first_name || ''} ${u.last_name || ''}`.trim();
             }
-          },
-          { enableHighAccuracy: true, timeout: 8000 }
-        );
-      }
-    }
 
-    // 10. Submit Order (POSTs directly to Apps Script)
-    function submitOrder() {
-      const btnSubmit = document.getElementById('btnSubmitOrder');
-      const name = document.getElementById('customerName').value.trim();
-      const phone = document.getElementById('customerPhone').value.trim();
-      const address = document.getElementById('deliveryAddress').value.trim();
-      const gps = document.getElementById('gpsCoordinates').value;
-      const notes = document.getElementById('orderNotes').value.trim();
+            tg.MainButton.setText("VIEW CART (0)");
+            tg.MainButton.onClick(openCheckout);
+        }
 
-      if (!name || !phone || !address) {
-        alert("Please complete Full Name, Phone Number, and Delivery Address.");
-        return;
-      }
+        function buildCategories() {
+            const categories = [...new Set(fullCatalog.map(i => i.Category).filter(Boolean))];
+            const container = document.getElementById('categoryChips');
+            categories.forEach(cat => {
+                const chip = document.createElement('div');
+                chip.className = 'chip';
+                chip.innerText = cat;
+                chip.onclick = () => selectCategory(cat, chip);
+                container.appendChild(chip);
+            });
+        }
 
-      btnSubmit.disabled = true;
-      btnSubmit.textContent = "Submitting Order...";
+        function selectCategory(cat, element) {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            element.classList.add('active');
+            selectedCategory = cat;
+            filterCatalog();
+        }
 
-      const orderItems = Object.values(cart).map(entry => ({
-        item_ID: entry.product.item_ID,
-        item_code: entry.product.item_code || '',
-        item_name: entry.product.Item_Name,
-        unit_price: parseFloat(entry.product.Selling_Price || 0),
-        quantity: entry.qty,
-        subtotal: parseFloat(entry.product.Selling_Price || 0) * entry.qty
-      }));
+        function filterCatalog() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            filteredCatalog = fullCatalog.filter(item => {
+                const matchesCat = (selectedCategory === 'ALL' || item.Category === selectedCategory);
+                const matchesSearch = (item.Name || '').toLowerCase().includes(query) || 
+                                      (item.Code || '').toLowerCase().includes(query);
+                return matchesCat && matchesSearch;
+            });
+            renderGrid();
+        }
 
-      const grandTotal = orderItems.reduce((sum, item) => sum + item.subtotal, 0);
+        function renderGrid() {
+            const grid = document.getElementById('catalogGrid');
+            grid.innerHTML = '';
 
-      const payload = {
-        action: "create_order",
-        customer: {
-          name: name,
-          telegram_user_id: telegramUserId,
-          phone: phone,
-          address: address,
-          gps_location: gps || null,
-          notes: notes || ""
-        },
-        items: orderItems,
-        total_amount: grandTotal,
-        currency: "ETB"
-      };
+            filteredCatalog.forEach(item => {
+                const itemId = item.ID || item.Code;
+                const inCartQty = cart[itemId] ? cart[itemId].qty : 0;
+                const availableStock = item.Total_Qty_Bridge || item.Quantity || 0;
 
-      // Send payload via HTTP POST to Google Apps Script
-      fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      .then(() => {
-        // Clear Cart & Reset Form
-        cart = {};
-        document.getElementById('orderNotes').value = '';
-        document.getElementById('gpsCoordinates').value = '';
-        document.getElementById('locationBtn').textContent = "📍 Detect My Current GPS Location";
-        document.getElementById('locationBtn').style.background = "#e0e7ff";
-        document.getElementById('locationBtn').style.color = "#3730a3";
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div>
+                        <div class="card-title">${item.Name}</div>
+                        <div class="card-meta">${item.Strength || ''} ${item.Form || ''}</div>
+                    </div>
+                    <div>
+                        <div class="card-price">${item.Price || 0} ETB</div>
+                        ${inCartQty === 0 ? `
+                            <button class="add-btn" onclick="addToCart('${itemId}')">Add</button>
+                        ` : `
+                            <div class="qty-controls">
+                                <button class="qty-btn" onclick="updateQty('${itemId}', -1)">-</button>
+                                <span class="qty-val">${inCartQty}</span>
+                                <button class="qty-btn" onclick="updateQty('${itemId}', 1, ${availableStock})">+</button>
+                            </div>
+                        `}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
 
-        updateTotals();
-        renderCatalog();
-        closeCartModal();
+        function addToCart(itemId) {
+            const item = fullCatalog.find(i => (i.ID || i.Code) === itemId);
+            if (!item) return;
+            cart[itemId] = { item, qty: 1 };
+            updateMainButton();
+            renderGrid();
+        }
 
-        btnSubmit.disabled = false;
-        btnSubmit.textContent = "Place Order";
+        function updateQty(itemId, delta, maxStock) {
+            if (!cart[itemId]) return;
+            const newQty = cart[itemId].qty + delta;
 
-        // Show Success Toast inside WebApp
-        const alertBox = document.getElementById('successAlert');
-        alertBox.style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (maxStock && newQty > maxStock) {
+                tg.showAlert(`Only ${maxStock} units available in stock.`);
+                return;
+            }
 
-        setTimeout(() => {
-          alertBox.style.display = 'none';
-        }, 5000);
-      })
-      .catch(err => {
-        alert("Failed to submit order. Please try again.");
-        btnSubmit.disabled = false;
-        btnSubmit.textContent = "Place Order";
-      });
-    }
-  </script>
+            if (newQty <= 0) {
+                delete cart[itemId];
+            } else {
+                cart[itemId].qty = newQty;
+            }
+            updateMainButton();
+            renderGrid();
+        }
+
+        function updateMainButton() {
+            const totalItems = Object.values(cart).reduce((sum, i) => sum + i.qty, 0);
+            const totalPrice = Object.values(cart).reduce((sum, i) => sum + (i.qty * (i.item.Price || 0)), 0);
+
+            if (totalItems > 0) {
+                tg.MainButton.setText(`VIEW CART (${totalItems}) • ${totalPrice.toFixed(2)} ETB`);
+                tg.MainButton.show();
+            } else {
+                tg.MainButton.hide();
+            }
+        }
+
+        function openCheckout() {
+            const summaryContainer = document.getElementById('cartSummary');
+            summaryContainer.innerHTML = '';
+
+            Object.values(cart).forEach(({ item, qty }) => {
+                const lineTotal = qty * (item.Price || 0);
+                const row = document.createElement('div');
+                row.className = 'cart-item';
+                row.innerHTML = `
+                    <div>
+                        <strong>${item.Name}</strong><br>
+                        <small>${qty} x ${item.Price} ETB</small>
+                    </div>
+                    <div>${lineTotal.toFixed(2)} ETB</div>
+                `;
+                summaryContainer.appendChild(row);
+            });
+
+            document.getElementById('checkoutModal').style.display = 'flex';
+        }
+
+        function closeCheckout() {
+            document.getElementById('checkoutModal').style.display = 'none';
+        }
+
+        async function submitOrder() {
+            const name = document.getElementById('custName').value.trim();
+            const phone = document.getElementById('custPhone').value.trim();
+            const address = document.getElementById('custAddress').value.trim();
+
+            if (!name || !phone) {
+                tg.showAlert('Please enter your name and phone number.');
+                return;
+            }
+
+            const itemsPayload = Object.values(cart).map(({ item, qty }) => ({
+                item_id: item.ID || item.Code,
+                name: item.Name,
+                quantity: qty,
+                unit_price: item.Price || 0,
+                subtotal: qty * (item.Price || 0)
+            }));
+
+            const totalAmount = Object.values(cart).reduce((sum, i) => sum + (i.qty * (i.item.Price || 0)), 0);
+
+            const payload = {
+                action: 'createOrder',
+                customer: {
+                    name,
+                    phone,
+                    address,
+                    telegram_id: tg.initDataUnsafe?.user?.id || null
+                },
+                items: itemsPayload,
+                total_amount: totalAmount,
+                currency: 'ETB'
+            };
+
+            tg.MainButton.showProgress();
+
+            try {
+                await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                tg.MainButton.hideProgress();
+                closeCheckout();
+                tg.showAlert('Order submitted successfully! We will contact you shortly.', () => {
+                    tg.close();
+                });
+            } catch (err) {
+                tg.MainButton.hideProgress();
+                console.error(err);
+                tg.showAlert('Error submitting order. Please try again.');
+            }
+        }
+
+        init();
+    </script>
 </body>
 </html>
