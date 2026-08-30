@@ -2,149 +2,415 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>StockCare Storefront</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; height: 100%; background: #f4f6f8; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #1e293b; }
-    .app-container { padding: 12px; padding-bottom: 90px; min-height: 100vh; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .header h2 { margin: 0; font-size: 18px; color: #0f172a; }
-    .cart-badge { background: #2563eb; color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-    .search-box { width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 14px; outline: none; margin-bottom: 12px; background: #fff; }
-    .search-box:focus { border-color: #2563eb; }
-    .categories { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none; }
-    .categories::-webkit-scrollbar { display: none; }
-    .chip { background: #e2e8f0; color: #475569; padding: 6px 14px; border-radius: 16px; font-size: 12px; font-weight: 600; white-space: nowrap; cursor: pointer; border: none; }
-    .chip.active { background: #0f172a; color: #fff; }
-    .card { background: #fff; padding: 12px 14px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center; }
-    .item-title { font-weight: 600; font-size: 14px; margin-bottom: 2px; color: #0f172a; }
-    .item-code { color: #64748b; font-size: 11px; margin-bottom: 2px; }
-    .item-price { font-weight: 700; font-size: 13px; color: #2563eb; margin-bottom: 2px; }
-    .item-meta { display: flex; gap: 10px; align-items: center; }
-    .item-qty { color: #059669; font-size: 11px; font-weight: 600; }
-    .item-expiry { color: #dc2626; font-size: 11px; font-weight: 500; }
-    .btn-add { background: #2563eb; color: #fff; border: none; padding: 7px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
-    .qty-controls { display: flex; align-items: center; gap: 8px; }
-    .btn-qty { background: #f1f5f9; border: 1px solid #cbd5e1; width: 28px; height: 28px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #0f172a; }
-    .qty-count { font-weight: 600; font-size: 13px; min-width: 16px; text-align: center; }
-    .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; padding: 12px 16px; box-shadow: 0 -4px 16px rgba(0,0,0,0.12); display: flex; justify-content: space-between; align-items: center; z-index: 150; border-top: 1px solid #e2e8f0; }
-    .total-display { font-size: 12px; color: #64748b; font-weight: 500; }
-    .total-amount { font-size: 18px; font-weight: 700; color: #0f172a; display: block; margin-top: 2px; }
-    .btn-checkout { background: #2563eb; color: #fff; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; }
-    .btn-checkout:disabled { background: #cbd5e1; cursor: not-allowed; }
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6); z-index: 200; display: none; opacity: 0; transition: opacity 0.2s ease; }
-    .modal-overlay.active { display: block; opacity: 1; }
-    .cart-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top-left-radius: 20px; border-top-right-radius: 20px; max-height: 90vh; display: flex; flex-direction: column; z-index: 201; transform: translateY(100%); transition: transform 0.25s ease; padding: 16px; }
-    .modal-overlay.active .cart-sheet { transform: translateY(0); }
-    .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
-    .sheet-title { font-size: 16px; font-weight: 700; margin: 0; color: #0f172a; }
-    .btn-close { background: #f1f5f9; border: none; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; cursor: pointer; }
-    .cart-items-list { overflow-y: auto; max-height: 25vh; margin-bottom: 10px; padding-right: 4px; }
-    .cart-item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
-    .cart-item-info { flex: 1; margin-right: 10px; }
-    .cart-item-name { font-weight: 600; font-size: 13px; color: #0f172a; margin-bottom: 2px; }
-    .cart-item-details { font-size: 11px; color: #64748b; }
-    .cart-item-subtotal { font-weight: 700; font-size: 12px; color: #2563eb; margin-top: 2px; }
-    .cart-summary-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-    .cart-summary-label { font-size: 13px; font-weight: 600; color: #475569; }
-    .cart-summary-value { font-size: 16px; font-weight: 800; color: #0f172a; }
-    .form-container { overflow-y: auto; }
-    .form-group { margin-bottom: 10px; }
-    .form-label { display: block; font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase; }
-    .form-input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; outline: none; }
-    .form-input:focus { border-color: #2563eb; }
-    .btn-location { background: #e0e7ff; color: #3730a3; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; }
-    .success-alert { display: none; background: #10b981; color: #fff; padding: 12px 16px; border-radius: 10px; text-align: center; font-weight: 600; font-size: 13px; margin-bottom: 12px; }
-    #status-msg { text-align: center; color: #64748b; font-size: 14px; margin-top: 30px; }
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --accent: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding-bottom: 90px;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      background-color: var(--card-bg);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+      z-index: 10;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .search-bar {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      background-color: #f1f5f9;
+    }
+
+    .search-bar:focus {
+      border-color: var(--primary);
+      background-color: #fff;
+    }
+
+    .categories-container {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 10px 16px;
+      background-color: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+      scrollbar-width: none;
+    }
+    .categories-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    .chip {
+      white-space: nowrap;
+      padding: 6px 14px;
+      border-radius: 16px;
+      background-color: #f1f5f9;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+    }
+
+    .chip.active {
+      background-color: var(--primary);
+      color: #fff;
+    }
+
+    #catalog {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 14px;
+      border: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .item-code {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .item-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 2px 0 4px 0;
+    }
+
+    .item-price {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .item-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-add {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background-color: #f1f5f9;
+      padding: 4px;
+      border-radius: 6px;
+    }
+
+    .btn-qty {
+      background-color: #fff;
+      border: 1px solid var(--border-color);
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qty-count {
+      font-size: 14px;
+      font-weight: 600;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: var(--card-bg);
+      border-top: 1px solid var(--border-color);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+      z-index: 20;
+    }
+
+    .cart-summary {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cart-count {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .cart-total {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .btn-checkout {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btn-checkout:disabled {
+      background-color: #cbd5e1;
+      cursor: not-allowed;
+    }
+
+    /* Modal Styling */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 30;
+      align-items: flex-end;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background-color: var(--card-bg);
+      width: 100%;
+      max-height: 85vh;
+      border-radius: 16px 16px 0 0;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text-muted);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .btn-location {
+      width: 100%;
+      padding: 10px;
+      background-color: #e0e7ff;
+      color: #3730a3;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      margin-top: 4px;
+      cursor: pointer;
+    }
+
+    .cart-item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .cart-item-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cart-item-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .cart-item-details {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .cart-item-subtotal {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    #status-msg {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .alert-success {
+      background-color: #d1fae5;
+      color: #065f46;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      display: none;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
 
-  <div class="app-container">
-    <div class="header">
-      <h2>💊 StockCare Store</h2>
-      <div class="cart-badge" onclick="openCartModal()">
-        🛒 Cart (<span id="cartCount">0</span>)
-      </div>
-    </div>
+  <div class="header">
+    <input type="text" id="searchInput" class="search-bar" placeholder="Search products or item code...">
+  </div>
 
-    <div id="successAlert" class="success-alert">
-      🎉 Order placed successfully! Confirmation sent to your chat.
-    </div>
+  <div class="categories-container" id="categoryContainer">
+    <button class="chip active">All</button>
+  </div>
 
-    <input type="text" id="searchInput" class="search-box" placeholder="Search by item name or code...">
-
-    <div class="categories" id="categoryContainer">
-      <button class="chip active" onclick="filterCategory('All', this)">All</button>
-    </div>
-
-    <div id="catalog">
-      <div id="status-msg">Loading available stock...</div>
-    </div>
+  <div id="catalog">
+    <div id="status-msg">Loading catalog...</div>
   </div>
 
   <div class="bottom-bar">
-    <div class="total-display">
-      Total Amount
-      <span class="total-amount" id="barTotal">0.00 ETB</span>
+    <div class="cart-summary">
+      <span class="cart-count"><span id="cartCount">0</span> Items</span>
+      <span class="cart-total" id="barTotal">0.00 ETB</span>
     </div>
     <button class="btn-checkout" id="btnBarCheckout" onclick="openCartModal()" disabled>View Cart</button>
   </div>
 
-  <div class="modal-overlay" id="cartModal">
-    <div class="cart-sheet">
-      <div class="sheet-header">
-        <h3 class="sheet-title">Your Order Summary</h3>
-        <button class="btn-close" onclick="closeCartModal()">✕</button>
+  <!-- Cart Modal -->
+  <div class="modal" id="cartModal">
+    <div class="modal-content">
+      <div id="successAlert" class="alert-success">
+        ✅ Order submitted successfully!
       </div>
 
-      <div class="cart-items-list" id="cartItemsContainer"></div>
-
-      <div class="cart-summary-box">
-        <span class="cart-summary-label">Grand Total (<span id="modalItemCount">0</span> items)</span>
-        <span class="cart-summary-value" id="modalGrandTotal">0.00 ETB</span>
+      <div class="modal-header">
+        <h3>Order Confirmation</h3>
+        <button onclick="closeCartModal()" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
       </div>
 
-      <div class="form-container">
-        <div class="form-group">
-          <label class="form-label">Full Name *</label>
-          <input type="text" id="customerName" class="form-input" placeholder="e.g. Abebe Kebede">
-        </div>
+      <div id="cartItemsContainer" style="margin-bottom: 16px;"></div>
 
-        <div class="form-group">
-          <label class="form-label">Phone Number *</label>
-          <input type="tel" id="customerPhone" class="form-input" placeholder="09XXXXXXXX">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Delivery Address *</label>
-          <input type="text" id="deliveryAddress" class="form-input" placeholder="Subcity, Woreda, Landmark, etc.">
-          <button class="btn-location" id="locationBtn" onclick="captureGPSLocation(true)">📍 Detect My Current GPS Location</button>
-          <input type="hidden" id="gpsCoordinates">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Order Notes (Optional)</label>
-          <input type="text" id="orderNotes" class="form-input" placeholder="Special delivery instructions...">
-        </div>
-
-        <button class="btn-checkout" id="btnSubmitOrder" style="width: 100%; margin-top: 8px;" onclick="submitOrder()">Place Order</button>
+      <div style="display:flex; justify-content:space-between; margin-bottom:16px; font-weight:700;">
+        <span>Total (<span id="modalItemCount">0</span> items):</span>
+        <span id="modalGrandTotal">0.00 ETB</span>
       </div>
+
+      <div class="form-group">
+        <label>Full Name *</label>
+        <input type="text" id="customerName" class="form-control" placeholder="Your name">
+      </div>
+
+      <div class="form-group">
+        <label>Phone Number *</label>
+        <input type="tel" id="customerPhone" class="form-control" placeholder="e.g. 0911223344">
+      </div>
+
+      <div class="form-group">
+        <label>Delivery Address *</label>
+        <input type="text" id="deliveryAddress" class="form-control" placeholder="City, Subcity, Street / Landmarks">
+      </div>
+
+      <div class="form-group">
+        <button type="button" id="locationBtn" class="btn-location" onclick="captureGPSLocation(true)">
+          📍 Attach GPS Location
+        </button>
+        <input type="hidden" id="gpsCoordinates">
+      </div>
+
+      <div class="form-group">
+        <label>Order Notes (Optional)</label>
+        <input type="text" id="orderNotes" class="form-control" placeholder="Special delivery instructions">
+      </div>
+
+      <button class="btn-checkout" id="btnSubmitOrder" style="width: 100%; margin-top: 8px;" onclick="submitOrder()">
+        Place Order
+      </button>
     </div>
   </div>
 
   <script>
-    // Points directly to Cloudflare Worker Bridge
-    const API_URL = "https://stockcare-bot.YOUR-SUBDOMAIN.workers.dev";
+    // Updated Cloudflare Worker URL
+    const API_URL = "https://stockcare-bot.zbabelm.workers.dev";
 
-    const tg = window.Telegram.WebApp;
-    tg.expand();
+    const tg = window.Telegram ? window.Telegram.WebApp : null;
+    if (tg) {
+      tg.expand();
+    }
 
-    const telegramUserId = tg.initDataUnsafe?.user?.id || null;
+    const telegramUserId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : null;
 
-    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
       const user = tg.initDataUnsafe.user;
       const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
       if (fullName) {
@@ -159,24 +425,35 @@
     let activeCategory = 'All';
     let cart = {}; 
 
-    fetch(`${API_URL}?action=getCatalog`)
-      .then(res => res.json())
+    // Fetch catalog from Cloudflare Worker
+    fetch(`${API_URL}/?action=getCatalog`)
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP Error: ${res.status}`);
+        }
+        return res.json();
+      })
       .then(data => {
-        if (data.status === 'success' && data.products && data.products.length > 0) {
+        if (data && data.status === 'success' && Array.isArray(data.products) && data.products.length > 0) {
           allProducts = data.products.filter(prod => {
             const qtyAvailable = parseFloat(prod.Total_Qty_Bridge || 0) > 0;
-            const isNotExpired = (prod.Stock_Status || '').toLowerCase() !== 'expired';
-            return qtyAvailable && isNotExpired;
+            return qtyAvailable;
           });
+
+          if (allProducts.length === 0) {
+            document.getElementById('catalog').innerHTML = '<div id="status-msg">No products currently in stock.</div>';
+            return;
+          }
 
           buildCategoryChips(allProducts);
           renderCatalog();
         } else {
-          document.getElementById('catalog').innerHTML = '<div id="status-msg">No products available.</div>';
+          document.getElementById('catalog').innerHTML = `<div id="status-msg">No products available. (${data.message || 'Empty response'})</div>`;
         }
       })
-      .catch(() => {
-        document.getElementById('catalog').innerHTML = '<div id="status-msg">Failed to load catalog.</div>';
+      .catch(err => {
+        console.error("Catalog Fetch Error:", err);
+        document.getElementById('catalog').innerHTML = `<div id="status-msg">Failed to load catalog: ${err.message}</div>`;
       });
 
     function buildCategoryChips(products) {
@@ -199,10 +476,18 @@
       renderCatalog();
     });
 
+    // Safe Date Formatter to avoid iOS/Telegram Webview crash
     function formatExpiry(dateStr) {
       if (!dateStr) return '';
-      const d = new Date(dateStr);
-      return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0];
+      try {
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+          return `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+        }
+        return dateStr;
+      } catch (e) {
+        return dateStr;
+      }
     }
 
     function renderCatalog() {
@@ -269,7 +554,7 @@
       const newQty = cart[itemId].qty + change;
 
       if (newQty > maxQty) {
-        if (tg.showAlert) { tg.showAlert(`Only ${maxQty} items available in stock.`); } else { alert(`Only ${maxQty} items available in stock.`); }
+        if (tg && tg.showAlert) { tg.showAlert(`Only ${maxQty} items available in stock.`); } else { alert(`Only ${maxQty} items available in stock.`); }
         return;
       }
 
