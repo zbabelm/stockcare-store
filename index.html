@@ -15,6 +15,12 @@
       --text-muted: #64748b;
       --border-color: #e2e8f0;
       --accent: #10b981;
+      --stock-green-bg: #d1fae5;
+      --stock-green-text: #065f46;
+      --stock-amber-bg: #fef3c7;
+      --stock-amber-text: #92400e;
+      --exp-red-bg: #fee2e2;
+      --exp-red-text: #991b1b;
     }
 
     * {
@@ -123,10 +129,39 @@
 
     .item-meta {
       font-size: 11px;
-      color: var(--text-muted);
-      margin-top: 4px;
+      margin-top: 6px;
       display: flex;
-      gap: 8px;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 11px;
+      display: inline-block;
+    }
+
+    .badge-stock-good {
+      background-color: var(--stock-green-bg);
+      color: var(--stock-green-text);
+    }
+
+    .badge-stock-low {
+      background-color: var(--stock-amber-bg);
+      color: var(--stock-amber-text);
+    }
+
+    .badge-exp-warn {
+      background-color: var(--exp-red-bg);
+      color: var(--exp-red-text);
+    }
+
+    .badge-exp-normal {
+      background-color: #f1f5f9;
+      color: var(--text-muted);
     }
 
     .btn-add {
@@ -400,7 +435,6 @@
   </div>
 
   <script>
-    // Updated Cloudflare Worker URL
     const API_URL = "https://stockcare-bot.zbabelm.workers.dev";
 
     const tg = window.Telegram ? window.Telegram.WebApp : null;
@@ -435,9 +469,11 @@
       })
       .then(data => {
         if (data && data.status === 'success' && Array.isArray(data.products) && data.products.length > 0) {
+          // EXCLUDE expired items AND items with Total_Qty_Bridge <= 0
           allProducts = data.products.filter(prod => {
+            const isNotExpired = (prod.Stock_Status || '').toLowerCase() !== 'expired';
             const qtyAvailable = parseFloat(prod.Total_Qty_Bridge || 0) > 0;
-            return qtyAvailable;
+            return isNotExpired && qtyAvailable;
           });
 
           if (allProducts.length === 0) {
@@ -476,7 +512,23 @@
       renderCatalog();
     });
 
-    // Safe Date Formatter to avoid iOS/Telegram Webview crash
+    // Helper: Check if date string is expiring soon (within 30 days)
+    function isExpiringSoon(dateStr) {
+      if (!dateStr) return false;
+      try {
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+          const expDate = new Date(parts[2], parts[0] - 1, parts[1]);
+          const now = new Date();
+          const diffDays = (expDate - now) / (1000 * 60 * 60 * 24);
+          return diffDays >= 0 && diffDays <= 30;
+        }
+      } catch (e) {
+        return false;
+      }
+      return false;
+    }
+
     function formatExpiry(dateStr) {
       if (!dateStr) return '';
       try {
@@ -515,6 +567,11 @@
         
         const price = prod.Selling_Price ? parseFloat(prod.Selling_Price).toFixed(2) : '0.00';
         const expiry = formatExpiry(prod.Expiry_Date);
+        const expiringSoon = isExpiringSoon(prod.Expiry_Date);
+
+        // Styling badge for Stock level
+        const stockBadgeClass = maxQty <= 5 ? 'badge-stock-low' : 'badge-stock-good';
+        const expBadgeClass = expiringSoon ? 'badge-exp-warn' : 'badge-exp-normal';
 
         const card = document.createElement('div');
         card.className = 'card';
@@ -524,8 +581,8 @@
             <div class="item-title">${prod.Item_Name || 'Unnamed Item'}</div>
             <div class="item-price">${price} ETB</div>
             <div class="item-meta">
-              <span class="item-qty">In Stock: ${maxQty}</span>
-              ${expiry ? `<span class="item-expiry">Exp: ${expiry}</span>` : ''}
+              <span class="badge ${stockBadgeClass}">Stock: ${maxQty}</span>
+              ${expiry ? `<span class="badge ${expBadgeClass}">Exp: ${expiry}</span>` : ''}
             </div>
           </div>
           <div id="controls-${itemId}">
