@@ -167,6 +167,9 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
+    // Store user ID for notifications
+    const telegramUserId = tg.initDataUnsafe?.user?.id || null;
+
     // Auto-fill Name from Telegram User Profile
     if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
       const user = tg.initDataUnsafe.user;
@@ -417,8 +420,9 @@
       }
     }
 
-    // 10. Submit Order (DOES NOT CLOSE WEBAPP & CLEARS CART)
+    // 10. Submit Order (POSTs directly to Apps Script)
     function submitOrder() {
+      const btnSubmit = document.getElementById('btnSubmitOrder');
       const name = document.getElementById('customerName').value.trim();
       const phone = document.getElementById('customerPhone').value.trim();
       const address = document.getElementById('deliveryAddress').value.trim();
@@ -429,6 +433,9 @@
         alert("Please complete Full Name, Phone Number, and Delivery Address.");
         return;
       }
+
+      btnSubmit.disabled = true;
+      btnSubmit.textContent = "Submitting Order...";
 
       const orderItems = Object.values(cart).map(entry => ({
         item_ID: entry.product.item_ID,
@@ -445,7 +452,7 @@
         action: "create_order",
         customer: {
           name: name,
-          telegram_user: tg.initDataUnsafe?.user || null,
+          telegram_user_id: telegramUserId,
           phone: phone,
           address: address,
           gps_location: gps || null,
@@ -453,38 +460,46 @@
         },
         items: orderItems,
         total_amount: grandTotal,
-        currency: "ETB",
-        timestamp: new Date().toISOString()
+        currency: "ETB"
       };
 
-      // 1. Send Payload to Telegram Bot
-      if (tg.sendData) {
-        tg.sendData(JSON.stringify(payload));
-      }
+      // Send payload via HTTP POST to Google Apps Script
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(() => {
+        // Clear Cart & Reset Form
+        cart = {};
+        document.getElementById('orderNotes').value = '';
+        document.getElementById('gpsCoordinates').value = '';
+        document.getElementById('locationBtn').textContent = "📍 Detect My Current GPS Location";
+        document.getElementById('locationBtn').style.background = "#e0e7ff";
+        document.getElementById('locationBtn').style.color = "#3730a3";
 
-      // 2. Clear Cart & Reset Form Inputs
-      cart = {};
-      document.getElementById('orderNotes').value = '';
-      document.getElementById('gpsCoordinates').value = '';
-      document.getElementById('locationBtn').textContent = "📍 Detect My Current GPS Location";
-      document.getElementById('locationBtn').style.background = "#e0e7ff";
-      document.getElementById('locationBtn').style.color = "#3730a3";
+        updateTotals();
+        renderCatalog();
+        closeCartModal();
 
-      // 3. Reset Floating Totals & Catalog UI
-      updateTotals();
-      renderCatalog();
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = "Place Order";
 
-      // 4. Close Modal Sheet Only (Keep WebApp Open)
-      closeCartModal();
+        // Show Success Toast inside WebApp
+        const alertBox = document.getElementById('successAlert');
+        alertBox.style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
 
-      // 5. Show Top Alert Banner inside the WebApp
-      const alertBox = document.getElementById('successAlert');
-      alertBox.style.display = 'block';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      setTimeout(() => {
-        alertBox.style.display = 'none';
-      }, 5000);
+        setTimeout(() => {
+          alertBox.style.display = 'none';
+        }, 5000);
+      })
+      .catch(err => {
+        alert("Failed to submit order. Please try again.");
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = "Place Order";
+      });
     }
   </script>
 </body>
