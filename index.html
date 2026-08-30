@@ -11,6 +11,7 @@
     .card { background: #fff; padding: 14px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center; }
     .item-title { font-weight: 600; font-size: 15px; margin-bottom: 4px; color: #0f172a; }
     .item-code { color: #64748b; font-size: 12px; margin-bottom: 2px; }
+    .item-qty { color: #059669; font-size: 12px; font-weight: 600; margin-top: 2px; }
     .btn { background: #2563eb; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; }
     #status-msg { text-align: center; color: #64748b; font-size: 14px; margin-top: 20px; }
   </style>
@@ -19,7 +20,7 @@
 
   <h2>💊 StockCare Storefront</h2>
   <div id="catalog">
-    <div id="status-msg">Loading stock...</div>
+    <div id="status-msg">Loading available stock...</div>
   </div>
 
   <script>
@@ -35,20 +36,32 @@
         catalogDiv.innerHTML = '';
         
         if (data.status === 'success' && data.products && data.products.length > 0) {
-          data.products.forEach((prod) => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = `
-              <div>
-                <div class="item-code">${prod.item_code || ''}</div>
-                <div class="item-title">${prod.Item_Name || 'Unnamed Item'}</div>
-              </div>
-              <button class="btn">Select</button>
-            `;
-            catalogDiv.appendChild(card);
+          
+          const availableProducts = data.products.filter(prod => {
+            const qty = parseFloat(prod.Total_Qty_Bridge || 0);
+            return qty > 0;
           });
+
+          if (availableProducts.length > 0) {
+            availableProducts.forEach((prod) => {
+              const card = document.createElement('div');
+              card.className = 'card';
+              card.innerHTML = `
+                <div>
+                  <div class="item-code">${prod.item_code || ''}</div>
+                  <div class="item-title">${prod.Item_Name || 'Unnamed Item'}</div>
+                  <div class="item-qty">In Stock: ${prod.Total_Qty_Bridge}</div>
+                </div>
+                <button class="btn">Select</button>
+              `;
+              catalogDiv.appendChild(card);
+            });
+          } else {
+            catalogDiv.innerHTML = '<div id="status-msg">No items currently in stock.</div>';
+          }
+
         } else {
-          catalogDiv.innerHTML = '<div id="status-msg">No items found.</div>';
+          catalogDiv.innerHTML = '<div id="status-msg">No products found.</div>';
         }
       })
       .catch(err => {
