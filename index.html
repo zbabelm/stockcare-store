@@ -6,22 +6,22 @@
   <title>StockCare Storefront</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: #f4f6f8; margin: 0; padding: 12px; color: #1e293b; padding-bottom: 90px; }
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f6f8; margin: 0; padding: 12px; color: #1e293b; padding-bottom: 90px; }
     
     /* Top Header & Cart Bar */
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .header h2 { margin: 0; font-size: 18px; color: #0f172a; }
-    .cart-badge { background: #2563eb; color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 5px rgba(37,99,235,0.3); }
+    .cart-badge { background: #2563eb; color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
 
     /* Search Input */
-    .search-box { width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 14px; outline: none; margin-bottom: 12px; background: #fff; transition: border-color 0.2s; }
+    .search-box { width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 14px; outline: none; margin-bottom: 12px; background: #fff; }
     .search-box:focus { border-color: #2563eb; }
 
     /* Category Chips */
     .categories { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none; }
     .categories::-webkit-scrollbar { display: none; }
-    .chip { background: #e2e8f0; color: #475569; padding: 6px 14px; border-radius: 16px; font-size: 12px; font-weight: 600; white-space: nowrap; cursor: pointer; border: none; transition: background 0.2s, color 0.2s; }
+    .chip { background: #e2e8f0; color: #475569; padding: 6px 14px; border-radius: 16px; font-size: 12px; font-weight: 600; white-space: nowrap; cursor: pointer; border: none; }
     .chip.active { background: #0f172a; color: #fff; }
 
     /* Product Cards */
@@ -34,61 +34,56 @@
     .item-expiry { color: #dc2626; font-size: 11px; font-weight: 500; }
     
     /* Quantity Controls */
-    .btn-add { background: #2563eb; color: #fff; border: none; padding: 7px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
+    .btn-add { background: #2563eb; color: #fff; border: none; padding: 7px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
     .qty-controls { display: flex; align-items: center; gap: 8px; }
     .btn-qty { background: #f1f5f9; border: 1px solid #cbd5e1; width: 28px; height: 28px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #0f172a; }
     .qty-count { font-weight: 600; font-size: 13px; min-width: 16px; text-align: center; }
 
-    #status-msg { text-align: center; color: #64748b; font-size: 14px; margin-top: 30px; }
+    /* Sticky Bottom Checkout Bar */
+    .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; padding: 12px 16px; box-shadow: 0 -4px 12px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; z-index: 100; }
+    .total-display { font-size: 13px; color: #64748b; }
+    .total-amount { font-size: 18px; font-weight: 700; color: #0f172a; display: block; }
+    .btn-checkout { background: #2563eb; color: #fff; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; }
+    .btn-checkout:disabled { background: #cbd5e1; cursor: not-allowed; }
 
-    /* Sticky Bottom Order Bar */
-    .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; padding: 12px 16px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 -4px 12px rgba(0,0,0,0.05); z-index: 100; transform: translateY(100%); transition: transform 0.3s ease-in-out; }
-    .bottom-bar.active { transform: translateY(0); }
-    .bottom-total-label { font-size: 11px; color: #64748b; }
-    .bottom-total-amount { font-size: 16px; font-weight: 700; color: #0f172a; }
-    .btn-checkout { background: #2563eb; color: #fff; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; }
-
-    /* Drawer / Cart Modal Overlay */
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.5); z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-    .modal-overlay.active { opacity: 1; pointer-events: auto; }
-
-    /* Slide-Up Cart Sheet */
-    .cart-drawer { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top-left-radius: 20px; border-top-right-radius: 20px; max-height: 85vh; overflow-y: auto; z-index: 201; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); padding: 18px; }
-    .modal-overlay.active .cart-drawer { transform: translateY(0); }
+    /* Cart Modal / Sheet */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.5); z-index: 200; display: none; opacity: 0; transition: opacity 0.2s ease; }
+    .modal-overlay.active { display: block; opacity: 1; }
+    .cart-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top-left-radius: 20px; border-top-right-radius: 20px; max-height: 85vh; display: flex; flex-direction: column; z-index: 201; transform: translateY(100%); transition: transform 0.25s ease; padding: 16px; }
+    .modal-overlay.active .cart-sheet { transform: translateY(0); }
     
-    .drawer-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 12px; }
-    .drawer-header h3 { margin: 0; font-size: 16px; color: #0f172a; }
-    .close-btn { background: #f1f5f9; border: none; width: 30px; height: 30px; border-radius: 50%; font-size: 16px; font-weight: bold; cursor: pointer; color: #64748b; }
+    .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
+    .sheet-title { font-size: 16px; font-weight: 700; margin: 0; color: #0f172a; }
+    .btn-close { background: #f1f5f9; border: none; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; cursor: pointer; }
 
-    /* Cart Items List inside Drawer */
-    .cart-items-list { max-height: 220px; overflow-y: auto; margin-bottom: 16px; }
+    .cart-items-list { overflow-y: auto; max-height: 35vh; margin-bottom: 12px; }
     .cart-item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f8fafc; }
-    .cart-item-info { flex: 1; padding-right: 10px; }
-    .cart-item-name { font-size: 13px; font-weight: 600; color: #0f172a; }
-    .cart-item-subtotal { font-size: 12px; color: #64748b; margin-top: 2px; }
+    .cart-item-info { flex: 1; }
+    .cart-item-name { font-weight: 600; font-size: 13px; color: #0f172a; }
+    .cart-item-subtotal { font-size: 12px; color: #2563eb; font-weight: 600; }
 
-    /* Customer Form Inputs */
+    /* Order Form */
     .form-group { margin-bottom: 10px; }
-    .form-group label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px; }
-    .form-input { width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px; outline: none; }
+    .form-label { display: block; font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase; }
+    .form-input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; outline: none; }
     .form-input:focus { border-color: #2563eb; }
+    
+    .btn-location { background: #e0e7ff; color: #3730a3; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; }
 
-    /* Final Submit Button */
-    .btn-submit-order { width: 100%; background: #059669; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 10px; box-shadow: 0 3px 8px rgba(5,150,105,0.3); }
-    .btn-submit-order:disabled { background: #94a3b8; cursor: not-allowed; }
+    #status-msg { text-align: center; color: #64748b; font-size: 14px; margin-top: 30px; }
   </style>
 </head>
 <body>
 
-  <!-- Top Header with Cart Button -->
+  <!-- Top Header -->
   <div class="header">
     <h2>💊 StockCare Store</h2>
-    <div class="cart-badge" id="cartBadge" onclick="openCart()">
+    <div class="cart-badge" onclick="openCartModal()">
       🛒 Cart (<span id="cartCount">0</span>)
     </div>
   </div>
 
-  <!-- Search Box -->
+  <!-- Search Input -->
   <input type="text" id="searchInput" class="search-box" placeholder="Search by item name or code...">
 
   <!-- Category Filter Buttons -->
@@ -101,74 +96,71 @@
     <div id="status-msg">Loading available stock...</div>
   </div>
 
-  <!-- Sticky Bottom Summary Bar -->
-  <div class="bottom-bar" id="bottomBar">
-    <div>
-      <div class="bottom-total-label"><span id="bottomCount">0</span> items selected</div>
-      <div class="bottom-total-amount" id="bottomTotal">0.00 ETB</div>
+  <!-- Sticky Bottom Bar -->
+  <div class="bottom-bar">
+    <div class="total-display">
+      Total Amount
+      <span class="total-amount" id="barTotal">0.00 ETB</span>
     </div>
-    <button class="btn-checkout" onclick="openCart()">Review Order</button>
+    <button class="btn-checkout" id="btnBarCheckout" onclick="openCartModal()" disabled>View Cart</button>
   </div>
 
-  <!-- Cart Modal Sheet Overlay -->
-  <div class="modal-overlay" id="modalOverlay" onclick="closeCartOnBackdrop(event)">
-    <div class="cart-drawer">
-      <div class="drawer-header">
-        <h3>🛒 Order Review</h3>
-        <button class="close-btn" onclick="closeCart()">✕</button>
+  <!-- Cart Modal / Checkout Sheet -->
+  <div class="modal-overlay" id="cartModal">
+    <div class="cart-sheet">
+      <div class="sheet-header">
+        <h3 class="sheet-title">Your Order Summary</h3>
+        <button class="btn-close" onclick="closeCartModal()">✕</button>
       </div>
 
-      <!-- Items List -->
-      <div class="cart-items-list" id="cartItemsList">
+      <!-- Selected Items -->
+      <div class="cart-items-list" id="cartItemsContainer">
         <!-- Rendered dynamically -->
       </div>
 
-      <!-- Total Price Summary -->
-      <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 10px 12px; border-radius: 8px; margin-bottom: 14px;">
-        <span style="font-weight: 600; font-size: 14px;">Grand Total:</span>
-        <span id="drawerTotal" style="font-weight: 800; font-size: 16px; color: #2563eb;">0.00 ETB</span>
-      </div>
-
-      <!-- Customer Checkout Details Form -->
+      <!-- Order Details Form -->
       <div class="form-group">
-        <label>Phone Number *</label>
-        <input type="tel" id="custPhone" class="form-input" placeholder="e.g. 0912345678">
+        <label class="form-label">Phone Number *</label>
+        <input type="tel" id="customerPhone" class="form-input" placeholder="09XXXXXXXX">
       </div>
 
       <div class="form-group">
-        <label>Delivery Address / Branch *</label>
-        <input type="text" id="custAddress" class="form-input" placeholder="e.g. Bole Sub-city, Woreda 03">
+        <label class="form-label">Delivery Address *</label>
+        <input type="text" id="deliveryAddress" class="form-input" placeholder="Subcity, Woreda, Landmark, etc.">
+        <button class="btn-location" onclick="captureGPSLocation()">📍 Use Current GPS Location</button>
+        <input type="hidden" id="gpsCoordinates">
       </div>
 
       <div class="form-group">
-        <label>Additional Notes (Optional)</label>
-        <input type="text" id="custNotes" class="form-input" placeholder="Urgent order, specific delivery time, etc.">
+        <label class="form-label">Order Notes (Optional)</label>
+        <input type="text" id="orderNotes" class="form-input" placeholder="Special delivery instructions...">
       </div>
 
-      <button class="btn-submit-order" id="submitBtn" onclick="submitOrder()">Confirm & Send Order</button>
+      <button class="btn-checkout" style="width: 100%; margin-top: 8px;" onclick="submitOrder()">Submit Order</button>
     </div>
   </div>
 
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxDwLSXmSgobcntmbgToDmkWjaF-oe-P5tvGEV2zonux6uTjAaXknBcmljm16daOVDmPQ/exec";
 
-    const tg = window.Telegram?.WebApp || null;
-    if (tg) {
-      tg.expand();
-      tg.ready();
-    }
+    const tg = window.Telegram.WebApp;
+    tg.expand();
 
     let allProducts = [];
     let activeCategory = 'All';
-    let cart = {}; // Store selected items { item_ID: { product, qty } }
+    let cart = {}; // Schema: { item_ID: { product: prod, qty: N } }
 
-    // 1. Fetch products from Apps Script backend
+    // 1. Fetch catalog
     fetch(`${SCRIPT_URL}?action=getCatalog`)
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success' && data.products && data.products.length > 0) {
-          // Filter to items with stock available
-          allProducts = data.products.filter(prod => parseFloat(prod.Total_Qty_Bridge || 0) > 0);
+          // Filter out expired items and items with 0 stock
+          allProducts = data.products.filter(prod => {
+            const qtyAvailable = parseFloat(prod.Total_Qty_Bridge || 0) > 0;
+            const isNotExpired = (prod.Stock_Status || '').toLowerCase() !== 'expired';
+            return qtyAvailable && isNotExpired;
+          });
 
           buildCategoryChips(allProducts);
           renderCatalog();
@@ -177,10 +169,10 @@
         }
       })
       .catch(() => {
-        document.getElementById('catalog').innerHTML = '<div id="status-msg">Failed to load catalog. Please check connection.</div>';
+        document.getElementById('catalog').innerHTML = '<div id="status-msg">Failed to load catalog.</div>';
       });
 
-    // 2. Build Category Chips dynamically
+    // 2. Build Category Chips
     function buildCategoryChips(products) {
       const container = document.getElementById('categoryContainer');
       const categories = ['All', ...new Set(products.map(p => p.Category || 'Uncategorized').filter(Boolean))];
@@ -190,7 +182,7 @@
       `).join('');
     }
 
-    // 3. Category Filter Action
+    // 3. Filter Category
     function filterCategory(cat, btn) {
       activeCategory = cat;
       document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
@@ -198,19 +190,19 @@
       renderCatalog();
     }
 
-    // 4. Search Filter Input Event
+    // 4. Search Filter
     document.getElementById('searchInput').addEventListener('input', () => {
       renderCatalog();
     });
 
-    // Format Expiry Date helper
+    // Helper: Date Formatting
     function formatExpiry(dateStr) {
       if (!dateStr) return '';
       const d = new Date(dateStr);
       return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0];
     }
 
-    // 5. Render Products based on Search + Category Filter
+    // 5. Render Catalog Cards
     function renderCatalog() {
       const catalogDiv = document.getElementById('catalog');
       const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
@@ -234,8 +226,7 @@
         const currentQty = cart[itemId] ? cart[itemId].qty : 0;
         const maxQty = parseFloat(prod.Total_Qty_Bridge || 0);
         
-        const priceNum = parseFloat(prod.Selling_Price || 0);
-        const priceStr = priceNum > 0 ? priceNum.toFixed(2) + ' ETB' : 'Price N/A';
+        const price = prod.Selling_Price ? parseFloat(prod.Selling_Price).toFixed(2) : '0.00';
         const expiry = formatExpiry(prod.Expiry_Date);
 
         const card = document.createElement('div');
@@ -244,7 +235,7 @@
           <div>
             <div class="item-code">${prod.item_code || ''}</div>
             <div class="item-title">${prod.Item_Name || 'Unnamed Item'}</div>
-            <div class="item-price">${priceStr}</div>
+            <div class="item-price">${price} ETB</div>
             <div class="item-meta">
               <span class="item-qty">In Stock: ${maxQty}</span>
               ${expiry ? `<span class="item-expiry">Exp: ${expiry}</span>` : ''}
@@ -265,7 +256,7 @@
       });
     }
 
-    // 6. Update Item Quantity & Cart Calculations
+    // 6. Update Cart Quantities
     function updateQty(itemId, change, maxQty) {
       const prod = allProducts.find(p => p.item_ID === itemId);
       if (!prod) return;
@@ -277,11 +268,7 @@
       const newQty = cart[itemId].qty + change;
 
       if (newQty > maxQty) {
-        if (tg && tg.showAlert) {
-          tg.showAlert(`Only ${maxQty} units available in stock.`);
-        } else {
-          alert(`Only ${maxQty} units available in stock.`);
-        }
+        tg.showAlert ? tg.showAlert(`Only ${maxQty} items available in stock.`) : alert(`Only ${maxQty} items available in stock.`);
         return;
       }
 
@@ -291,145 +278,142 @@
         cart[itemId].qty = newQty;
       }
 
-      updateCartSummary();
+      updateTotals();
       renderCatalog();
-
-      // If drawer is open, re-render drawer list
-      if (document.getElementById('modalOverlay').classList.contains('active')) {
-        renderDrawerItems();
+      if (document.getElementById('cartModal').classList.contains('active')) {
+        renderCartModalItems();
       }
     }
 
-    // 7. Calculate and Update Cart Summaries (Counts and Total Price)
-    function updateCartSummary() {
-      const cartEntries = Object.values(cart);
-      const totalItems = cartEntries.reduce((sum, item) => sum + item.qty, 0);
-      const totalPrice = cartEntries.reduce((sum, item) => {
-        const p = parseFloat(item.product.Selling_Price || 0);
-        return sum + (p * item.qty);
-      }, 0);
+    // 7. Recalculate Totals
+    function updateTotals() {
+      let totalItems = 0;
+      let grandTotal = 0;
 
-      // Top Cart Header
+      Object.values(cart).forEach(entry => {
+        totalItems += entry.qty;
+        const price = parseFloat(entry.product.Selling_Price || 0);
+        grandTotal += price * entry.qty;
+      });
+
       document.getElementById('cartCount').textContent = totalItems;
-
-      // Bottom Bar
-      document.getElementById('bottomCount').textContent = totalItems;
-      document.getElementById('bottomTotal').textContent = totalPrice.toFixed(2) + ' ETB';
+      document.getElementById('barTotal').textContent = `${grandTotal.toFixed(2)} ETB`;
       
-      const bottomBar = document.getElementById('bottomBar');
-      if (totalItems > 0) {
-        bottomBar.classList.add('active');
-      } else {
-        bottomBar.classList.remove('active');
-        closeCart();
-      }
-
-      // Drawer Total
-      document.getElementById('drawerTotal').textContent = totalPrice.toFixed(2) + ' ETB';
+      const btnCheckout = document.getElementById('btnBarCheckout');
+      btnCheckout.disabled = totalItems === 0;
+      btnCheckout.textContent = totalItems > 0 ? `View Cart (${totalItems})` : 'View Cart';
     }
 
-    // 8. Open / Close Cart Modal Sheet
-    function openCart() {
+    // 8. Modal Handlers
+    function openCartModal() {
+      if (Object.keys(cart).length === 0) return;
+      renderCartModalItems();
+      document.getElementById('cartModal').classList.add('active');
+    }
+
+    function closeCartModal() {
+      document.getElementById('cartModal').classList.remove('active');
+    }
+
+    function renderCartModalItems() {
+      const container = document.getElementById('cartItemsContainer');
+      container.innerHTML = '';
+
       if (Object.keys(cart).length === 0) {
-        if (tg && tg.showAlert) {
-          tg.showAlert('Your cart is empty! Add items from the catalog first.');
-        } else {
-          alert('Your cart is empty!');
-        }
-        return;
-      }
-      renderDrawerItems();
-      document.getElementById('modalOverlay').classList.add('active');
-    }
-
-    function closeCart() {
-      document.getElementById('modalOverlay').classList.remove('active');
-    }
-
-    function closeCartOnBackdrop(e) {
-      if (e.target.id === 'modalOverlay') {
-        closeCart();
-      }
-    }
-
-    // 9. Render Cart Items inside Modal
-    function renderDrawerItems() {
-      const container = document.getElementById('cartItemsList');
-      const items = Object.values(cart);
-
-      if (items.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding: 20px; color:#64748b;">Cart is empty</div>';
+        container.innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">Cart is empty.</div>';
+        closeCartModal();
         return;
       }
 
-      container.innerHTML = items.map(item => {
-        const prod = item.product;
-        const maxQty = parseFloat(prod.Total_Qty_Bridge || 0);
+      Object.values(cart).forEach(entry => {
+        const prod = entry.product;
         const price = parseFloat(prod.Selling_Price || 0);
-        const lineTotal = price * item.qty;
+        const subtotal = (price * entry.qty).toFixed(2);
+        const maxQty = parseFloat(prod.Total_Qty_Bridge || 0);
 
-        return `
-          <div class="cart-item-row">
-            <div class="cart-item-info">
-              <div class="cart-item-name">${prod.Item_Name || 'Item'}</div>
-              <div class="cart-item-subtotal">${price.toFixed(2)} × ${item.qty} = <b>${lineTotal.toFixed(2)} ETB</b></div>
-            </div>
-            <div class="qty-controls">
-              <button class="btn-qty" onclick="updateQty('${prod.item_ID}', -1, ${maxQty})">-</button>
-              <span class="qty-count">${item.qty}</span>
-              <button class="btn-qty" onclick="updateQty('${prod.item_ID}', 1, ${maxQty})">+</button>
-            </div>
+        const row = document.createElement('div');
+        row.className = 'cart-item-row';
+        row.innerHTML = `
+          <div class="cart-item-info">
+            <div class="cart-item-name">${prod.Item_Name}</div>
+            <div class="cart-item-subtotal">${subtotal} ETB (${price.toFixed(2)} × ${entry.qty})</div>
+          </div>
+          <div class="qty-controls">
+            <button class="btn-qty" onclick="updateQty('${prod.item_ID}', -1, ${maxQty})">-</button>
+            <span class="qty-count">${entry.qty}</span>
+            <button class="btn-qty" onclick="updateQty('${prod.item_ID}', 1, ${maxQty})">+</button>
           </div>
         `;
-      }).join('');
+        container.appendChild(row);
+      });
     }
 
-    // 10. Submit Order to Telegram Bot
+    // 9. Capture Device GPS Location
+    function captureGPSLocation() {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            document.getElementById('gpsCoordinates').value = `https://maps.google.com/?q=${lat},${lng}`;
+            
+            const btn = document.querySelector('.btn-location');
+            btn.textContent = "✅ Location Captured!";
+            btn.style.background = "#d1fae5";
+            btn.style.color = "#065f46";
+          },
+          (error) => {
+            alert("Unable to retrieve location. Please type your delivery address.");
+          }
+        );
+      } else {
+        alert("Geolocation is not supported by your browser.");
+      }
+    }
+
+    // 10. Submit Order Payload to Telegram Bot
     function submitOrder() {
-      const phone = document.getElementById('custPhone').value.trim();
-      const address = document.getElementById('custAddress').value.trim();
-      const notes = document.getElementById('custNotes').value.trim();
+      const phone = document.getElementById('customerPhone').value.trim();
+      const address = document.getElementById('deliveryAddress').value.trim();
+      const gps = document.getElementById('gpsCoordinates').value;
+      const notes = document.getElementById('orderNotes').value.trim();
 
       if (!phone || !address) {
-        if (tg && tg.showAlert) {
-          tg.showAlert('Please enter your phone number and delivery address.');
-        } else {
-          alert('Please enter your phone number and delivery address.');
-        }
+        alert("Please provide both phone number and delivery address.");
         return;
       }
 
-      const itemsList = Object.values(cart).map(i => ({
-        item_ID: i.product.item_ID,
-        item_code: i.product.item_code || '',
-        item_name: i.product.Item_Name || 'Item',
-        unit_price: parseFloat(i.product.Selling_Price || 0),
-        quantity: i.qty,
-        subtotal: parseFloat((parseFloat(i.product.Selling_Price || 0) * i.qty).toFixed(2))
+      const orderItems = Object.values(cart).map(entry => ({
+        item_ID: entry.product.item_ID,
+        item_code: entry.product.item_code || '',
+        item_name: entry.product.Item_Name,
+        unit_price: parseFloat(entry.product.Selling_Price || 0),
+        quantity: entry.qty,
+        subtotal: parseFloat(entry.product.Selling_Price || 0) * entry.qty
       }));
 
-      const grandTotal = itemsList.reduce((sum, item) => sum + item.subtotal, 0);
+      const grandTotal = orderItems.reduce((sum, item) => sum + item.subtotal, 0);
 
-      const orderPayload = {
-        action: "submitOrder",
-        timestamp: new Date().toISOString(),
+      const payload = {
+        action: "create_order",
         customer: {
+          telegram_user: tg.initDataUnsafe?.user || null,
           phone: phone,
           address: address,
-          notes: notes,
-          telegram_user: tg?.initDataUnsafe?.user || null
+          gps_location: gps || null,
+          notes: notes || ""
         },
-        items: itemsList,
-        total_items: itemsList.reduce((sum, i) => sum + i.quantity, 0),
-        grand_total: parseFloat(grandTotal.toFixed(2))
+        items: orderItems,
+        total_amount: grandTotal,
+        currency: "ETB",
+        timestamp: new Date().toISOString()
       };
 
-      // Send payload via Telegram WebApp SDK
-      if (tg && tg.sendData) {
-        tg.sendData(JSON.stringify(orderPayload));
+      if (tg.sendData) {
+        tg.sendData(JSON.stringify(payload));
       } else {
-        // Browser fallback test
-        alert('Order Prepared for Telegram:\n\n' + JSON.stringify(orderPayload, null, 2));
+        console.log("Order Payload:", payload);
+        alert("Order submitted successfully (Dev Preview).");
       }
     }
   </script>
