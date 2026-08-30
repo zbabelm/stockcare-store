@@ -483,7 +483,14 @@
 
   <script>
     const API_URL = "https://stockcare-bot.zbabelm.workers.dev";
-    const STANDALONE_CATEGORIES = ["Cosmetics", "Baby Care", "Medical Devices & Supplies"];
+    
+    // Explicit list of standalone categories (not grouped inside Medicine)
+    const STANDALONE_CATEGORIES = [
+      "Cosmetics", 
+      "Baby Care", 
+      "Baby Food & Milk", 
+      "Medical Devices & Supplies"
+    ];
 
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     if (tg) {
@@ -536,7 +543,6 @@
             return isNotExpired && qtyAvailable;
           });
 
-          // Store cache for fast future loads
           localStorage.setItem('stockcare_catalog_cache', JSON.stringify(allProducts));
 
           if (allProducts.length === 0) {
@@ -557,20 +563,25 @@
         }
       });
 
+    function isStandaloneCategory(catName) {
+      const name = (catName || '').toLowerCase();
+      return STANDALONE_CATEGORIES.some(sc => sc.toLowerCase() === name || name.includes('baby') || name.includes('cosmetic') || name.includes('device') || name.includes('supply'));
+    }
+
     function buildCategoryChips(products) {
       const container = document.getElementById('categoryContainer');
       const presentCats = new Set(products.map(p => p.Category || 'Uncategorized'));
       
       const categoryList = ['All'];
       
-      // Add existing standalone categories
+      // Collect dynamically matching standalone categories
       STANDALONE_CATEGORIES.forEach(cat => {
-        if (presentCats.has(cat)) categoryList.push(cat);
+        categoryList.push(cat);
       });
 
-      // Group all other categories under Medicine if present
-      const hasMedicine = Array.from(presentCats).some(cat => !STANDALONE_CATEGORIES.includes(cat));
-      if (hasMedicine) {
+      // Group therapeutic classes under Medicine
+      const hasMedicine = Array.from(presentCats).some(cat => !isStandaloneCategory(cat));
+      if (hasMedicine && !categoryList.includes('Medicine')) {
         categoryList.push('Medicine');
       }
 
@@ -587,7 +598,7 @@
 
       products.forEach(p => {
         const cat = p.Category || 'Uncategorized';
-        if (!STANDALONE_CATEGORIES.includes(cat)) {
+        if (!isStandaloneCategory(cat)) {
           medCategories.add(cat);
         }
       });
@@ -659,9 +670,13 @@
       let categoryFiltered = allProducts.filter(prod => {
         const cat = prod.Category || 'Uncategorized';
         if (activeCategory === 'All') return true;
-        if (STANDALONE_CATEGORIES.includes(activeCategory)) return cat === activeCategory;
+        
+        if (isStandaloneCategory(activeCategory)) {
+          return isStandaloneCategory(cat) && cat.toLowerCase().includes(activeCategory.toLowerCase().split(' ')[0]);
+        }
+        
         if (activeCategory === 'Medicine') {
-          const isMed = !STANDALONE_CATEGORIES.includes(cat);
+          const isMed = !isStandaloneCategory(cat);
           if (!isMed) return false;
           if (activeSubCategory === 'All') return true;
           return cat === activeSubCategory;
@@ -670,19 +685,18 @@
       });
 
       let finalFiltered = categoryFiltered;
-      let matchedSuggestion = null;
 
       if (searchTerm.length > 0) {
-        // Standard Search
+        // Standard Exact/Partial Search
         finalFiltered = categoryFiltered.filter(prod => {
           return (prod.Item_Name || '').toLowerCase().includes(searchTerm) || 
                  (prod.item_code || '').toLowerCase().includes(searchTerm);
         });
 
-        // Fuzzy match if exact match yields no results
+        // Fuzzy Match: Collect ALL similar items if exact search returns nothing
         if (finalFiltered.length === 0 && searchTerm.length >= 3) {
-          let bestMatch = null;
-          let lowestDist = Infinity;
+          const matchedSet = new Set();
+          const matchedNames = new Set();
 
           categoryFiltered.forEach(prod => {
             const name = (prod.Item_Name || '').toLowerCase();
@@ -690,21 +704,19 @@
 
             words.forEach(word => {
               const dist = levenshteinDistance(searchTerm, word);
-              if (dist < lowestDist && dist <= 3) {
-                lowestDist = dist;
-                bestMatch = prod.Item_Name;
+              // Max distance threshold based on word length
+              const maxAllowedDist = searchTerm.length <= 4 ? 1 : 2;
+              if (dist <= maxAllowedDist) {
+                matchedSet.add(prod);
+                matchedNames.add(prod.Item_Name);
               }
             });
           });
 
-          if (bestMatch) {
-            matchedSuggestion = bestMatch;
-            const matchTerm = bestMatch.toLowerCase();
-            finalFiltered = categoryFiltered.filter(prod => 
-              (prod.Item_Name || '').toLowerCase().includes(matchTerm)
-            );
-
-            suggestionBox.innerHTML = `Showing results for <strong>"${bestMatch}"</strong>`;
+          if (matchedSet.size > 0) {
+            finalFiltered = Array.from(matchedSet);
+            const suggestionsList = Array.from(matchedNames).slice(0, 3).join(', ');
+            suggestionBox.innerHTML = `Showing similar items for <strong>"${searchTerm}"</strong>: <em>${suggestionsList}${matchedNames.size > 3 ? '...' : ''}</em>`;
             suggestionBox.style.display = 'block';
           }
         }
