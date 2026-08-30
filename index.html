@@ -484,11 +484,12 @@
   <script>
     const API_URL = "https://stockcare-bot.zbabelm.workers.dev";
     
-    // Explicit list of standalone categories (not grouped inside Medicine)
+    // Standalone categories excluded from Medicine
     const STANDALONE_CATEGORIES = [
       "Cosmetics", 
       "Baby Care", 
-      "Baby Food & Milk", 
+      "Baby Food & Milk",
+      "Milk and Cereal foods",
       "Medical Devices & Supplies"
     ];
 
@@ -564,22 +565,17 @@
       });
 
     function isStandaloneCategory(catName) {
-      const name = (catName || '').toLowerCase();
-      return STANDALONE_CATEGORIES.some(sc => sc.toLowerCase() === name || name.includes('baby') || name.includes('cosmetic') || name.includes('device') || name.includes('supply'));
+      const name = (catName || '').trim().toLowerCase();
+      return STANDALONE_CATEGORIES.some(sc => sc.toLowerCase() === name || name.includes('baby') || name.includes('cosmetic') || name.includes('device') || name.includes('supply') || name.includes('cereal'));
     }
 
     function buildCategoryChips(products) {
       const container = document.getElementById('categoryContainer');
-      const presentCats = new Set(products.map(p => p.Category || 'Uncategorized'));
+      const presentCats = new Set(products.map(p => (p.Category || '').trim()));
       
-      const categoryList = ['All'];
-      
-      // Collect dynamically matching standalone categories
-      STANDALONE_CATEGORIES.forEach(cat => {
-        categoryList.push(cat);
-      });
+      const categoryList = ['All', 'Baby Care', 'Baby Food & Milk', 'Cosmetics', 'Medical Devices & Supplies'];
 
-      // Group therapeutic classes under Medicine
+      // Group non-standalone classes under Medicine
       const hasMedicine = Array.from(presentCats).some(cat => !isStandaloneCategory(cat));
       if (hasMedicine && !categoryList.includes('Medicine')) {
         categoryList.push('Medicine');
@@ -597,7 +593,7 @@
       const medCategories = new Set();
 
       products.forEach(p => {
-        const cat = p.Category || 'Uncategorized';
+        const cat = (p.Category || 'Uncategorized').trim();
         if (!isStandaloneCategory(cat)) {
           medCategories.add(cat);
         }
@@ -637,7 +633,6 @@
       renderCatalog();
     });
 
-    // Levenshtein distance algorithm for fuzzy spelling match
     function levenshteinDistance(a, b) {
       const matrix = [];
       for (let i = 0; i <= b.length; i++) matrix[i] = [i];
@@ -668,9 +663,13 @@
 
       // Category filter logic
       let categoryFiltered = allProducts.filter(prod => {
-        const cat = prod.Category || 'Uncategorized';
+        const cat = (prod.Category || 'Uncategorized').trim();
         if (activeCategory === 'All') return true;
         
+        if (activeCategory === 'Baby Food & Milk') {
+          return cat.toLowerCase() === 'milk and cereal foods';
+        }
+
         if (isStandaloneCategory(activeCategory)) {
           return isStandaloneCategory(cat) && cat.toLowerCase().includes(activeCategory.toLowerCase().split(' ')[0]);
         }
@@ -687,13 +686,11 @@
       let finalFiltered = categoryFiltered;
 
       if (searchTerm.length > 0) {
-        // Standard Exact/Partial Search
         finalFiltered = categoryFiltered.filter(prod => {
           return (prod.Item_Name || '').toLowerCase().includes(searchTerm) || 
                  (prod.item_code || '').toLowerCase().includes(searchTerm);
         });
 
-        // Fuzzy Match: Collect ALL similar items if exact search returns nothing
         if (finalFiltered.length === 0 && searchTerm.length >= 3) {
           const matchedSet = new Set();
           const matchedNames = new Set();
@@ -704,7 +701,6 @@
 
             words.forEach(word => {
               const dist = levenshteinDistance(searchTerm, word);
-              // Max distance threshold based on word length
               const maxAllowedDist = searchTerm.length <= 4 ? 1 : 2;
               if (dist <= maxAllowedDist) {
                 matchedSet.add(prod);
