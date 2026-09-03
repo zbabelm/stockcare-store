@@ -148,6 +148,17 @@
       gap: 12px;
     }
 
+    /* Product Thumbnail Styling */
+    .item-thumbnail {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid var(--border-color);
+      flex-shrink: 0;
+      background-color: #ffffff;
+    }
+
     .item-details {
       flex-grow: 1;
     }
@@ -743,9 +754,13 @@
         const stockBadgeClass = maxQty <= 5 ? 'badge-stock-low' : 'badge-stock-good';
         const expBadgeClass = expiringSoon ? 'badge-exp-warn' : 'badge-exp-normal';
         
+        // Handle Image Property check (supports common naming conventions like Image, Image_URL, Photo, etc.)
+        const imageUrl = prod.Image || prod.Image_URL || prod.Photo || prod.picture || '';
+
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
+          ${imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(prod.Item_Name)}" class="item-thumbnail">` : `<div class="item-thumbnail"></div>`}
           <div class="item-details">
             <div class="item-code">${prod.item_code || ''}</div>
             <div class="item-title">${prod.Item_Name || 'Unnamed Item'}</div>
