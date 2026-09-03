@@ -145,6 +145,21 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 12px;
+    }
+
+    .item-img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background-color: #f1f5f9;
+      flex-shrink: 0;
+    }
+
+    .item-details {
+      flex-grow: 1;
     }
 
     .item-code {
@@ -654,6 +669,10 @@
       return matrix[b.length][a.length];
     }
 
+    function escapeHtml(str) {
+      return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
     function renderCatalog() {
       const catalogDiv = document.getElementById('catalog');
       const suggestionBox = document.getElementById('suggestionBox');
@@ -736,11 +755,14 @@
 
         const stockBadgeClass = maxQty <= 5 ? 'badge-stock-low' : 'badge-stock-good';
         const expBadgeClass = expiringSoon ? 'badge-exp-warn' : 'badge-exp-normal';
+        
+        const imageUrl = prod.Image_URL || 'https://via.placeholder.com/60?text=No+Image';
 
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-          <div>
+          <img src="${imageUrl}" alt="${escapeHtml(prod.Item_Name)}" class="item-img" onerror="this.src='https://via.placeholder.com/60?text=Error'">
+          <div class="item-details">
             <div class="item-code">${prod.item_code || ''}</div>
             <div class="item-title">${prod.Item_Name || 'Unnamed Item'}</div>
             <div class="item-price">${price} ETB</div>
