@@ -1,6 +1,490 @@
-<script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>StockCare Storefront</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --accent: #10b981;
+      --stock-green-bg: #d1fae5;
+      --stock-green-text: #065f46;
+      --stock-amber-bg: #fef3c7;
+      --stock-amber-text: #92400e;
+      --exp-red-bg: #fee2e2;
+      --exp-red-text: #991b1b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding-bottom: 90px;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      background-color: var(--card-bg);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+      z-index: 10;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .search-bar {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      background-color: #f1f5f9;
+    }
+
+    .search-bar:focus {
+      border-color: var(--primary);
+      background-color: #fff;
+    }
+
+    .categories-container {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 10px 16px;
+      background-color: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+      scrollbar-width: none;
+    }
+    .categories-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    .chip {
+      white-space: nowrap;
+      padding: 6px 14px;
+      border-radius: 16px;
+      background-color: #f1f5f9;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+    }
+
+    .chip.active {
+      background-color: var(--primary);
+      color: #fff;
+    }
+
+    .sub-category-bar {
+      padding: 8px 16px;
+      background-color: #edf2f7;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .sub-category-bar.active {
+      display: flex;
+    }
+
+    .sub-category-bar label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .sub-category-select {
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      font-size: 13px;
+      background-color: white;
+      outline: none;
+    }
+
+    .suggestion-box {
+      margin: 12px 16px 0 16px;
+      padding: 8px 12px;
+      background-color: #e0f2fe;
+      border: 1px solid #bae6fd;
+      color: #0369a1;
+      border-radius: 6px;
+      font-size: 13px;
+      display: none;
+    }
+
+    #catalog {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 14px;
+      border: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .item-code {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .item-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 2px 0 4px 0;
+    }
+
+    .item-price {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .item-meta {
+      font-size: 11px;
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 11px;
+      display: inline-block;
+    }
+
+    .badge-stock-good {
+      background-color: var(--stock-green-bg);
+      color: var(--stock-green-text);
+    }
+
+    .badge-stock-low {
+      background-color: var(--stock-amber-bg);
+      color: var(--stock-amber-text);
+    }
+
+    .badge-exp-warn {
+      background-color: var(--exp-red-bg);
+      color: var(--exp-red-text);
+    }
+
+    .badge-exp-normal {
+      background-color: #f1f5f9;
+      color: var(--text-muted);
+    }
+
+    .btn-add {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background-color: #f1f5f9;
+      padding: 4px;
+      border-radius: 6px;
+    }
+
+    .btn-qty {
+      background-color: #fff;
+      border: 1px solid var(--border-color);
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qty-count {
+      font-size: 14px;
+      font-weight: 600;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: var(--card-bg);
+      border-top: 1px solid var(--border-color);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+      z-index: 20;
+    }
+
+    .cart-summary {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cart-count {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .cart-total {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .btn-checkout {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btn-checkout:disabled {
+      background-color: #cbd5e1;
+      cursor: not-allowed;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 30;
+      align-items: flex-end;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background-color: var(--card-bg);
+      width: 100%;
+      max-height: 85vh;
+      border-radius: 16px 16px 0 0;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text-muted);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .btn-location {
+      width: 100%;
+      padding: 10px;
+      background-color: #e0e7ff;
+      color: #3730a3;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      margin-top: 4px;
+      cursor: pointer;
+    }
+
+    .cart-item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .cart-item-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cart-item-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .cart-item-details {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .cart-item-subtotal {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    #status-msg {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .alert-success {
+      background-color: #d1fae5;
+      color: #065f46;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      display: none;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <input type="text" id="searchInput" class="search-bar" placeholder="Search products or item code...">
+  </div>
+
+  <div class="categories-container" id="categoryContainer">
+    <button class="chip active">All</button>
+  </div>
+
+  <div class="sub-category-bar" id="subCategoryBar">
+    <label for="subCategorySelect">Medicine Type:</label>
+    <select id="subCategorySelect" class="sub-category-select" onchange="filterSubCategory(this.value)">
+      <option value="All">All Medicines</option>
+    </select>
+  </div>
+
+  <div id="suggestionBox" class="suggestion-box"></div>
+
+  <div id="catalog">
+    <div id="status-msg">Loading items...</div>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="cart-summary">
+      <span class="cart-count"><span id="cartCount">0</span> Items</span>
+      <span class="cart-total" id="barTotal">0.00 ETB</span>
+    </div>
+    <button class="btn-checkout" id="btnBarCheckout" onclick="openCartModal()" disabled>View Cart</button>
+  </div>
+
+  <!-- Cart Modal -->
+  <div class="modal" id="cartModal">
+    <div class="modal-content">
+      <div id="successAlert" class="alert-success">
+        ✅ Order submitted successfully!
+      </div>
+
+      <div class="modal-header">
+        <h3>Order Confirmation</h3>
+        <button onclick="closeCartModal()" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
+      </div>
+
+      <div id="cartItemsContainer" style="margin-bottom: 16px;"></div>
+
+      <div style="display:flex; justify-content:space-between; margin-bottom:16px; font-weight:700;">
+        <span>Total (<span id="modalItemCount">0</span> items):</span>
+        <span id="modalGrandTotal">0.00 ETB</span>
+      </div>
+
+      <div class="form-group">
+        <label>Full Name *</label>
+        <input type="text" id="customerName" class="form-control" placeholder="Your name">
+      </div>
+
+      <div class="form-group">
+        <label>Phone Number *</label>
+        <input type="tel" id="customerPhone" class="form-control" placeholder="e.g. 0911223344">
+      </div>
+
+      <div class="form-group">
+        <label>Delivery Address *</label>
+        <input type="text" id="deliveryAddress" class="form-control" placeholder="City, Subcity, Street / Landmarks">
+      </div>
+
+      <div class="form-group">
+        <button type="button" id="locationBtn" class="btn-location" onclick="captureGPSLocation(true)">
+          📍 Attach GPS Location
+        </button>
+        <input type="hidden" id="gpsCoordinates">
+      </div>
+
+      <div class="form-group">
+        <label>Order Notes (Optional)</label>
+        <input type="text" id="orderNotes" class="form-control" placeholder="Special delivery instructions">
+      </div>
+
+      <button class="btn-checkout" id="btnSubmitOrder" style="width: 100%; margin-top: 8px;" onclick="submitOrder()">
+        Place Order
+      </button>
+    </div>
+  </div>
+
+  <script>
     const API_URL = "https://stockcare-bot.zbabelm.workers.dev";
     
+    // Standalone categories excluded from Medicine
     const STANDALONE_CATEGORIES = [
       "Cosmetics", 
       "Baby Care", 
@@ -9,13 +493,12 @@
       "Medical Devices & Supplies"
     ];
 
-    const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+    const tg = window.Telegram ? window.Telegram.WebApp : null;
     if (tg) {
-      try { tg.expand(); } catch(e) {}
+      tg.expand();
     }
 
     const telegramUserId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : null;
-    const telegramInitData = (tg && tg.initData) ? tg.initData : null;
 
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
       const user = tg.initDataUnsafe.user;
@@ -23,7 +506,7 @@
       if (fullName) {
         document.addEventListener('DOMContentLoaded', () => {
           const nameField = document.getElementById('customerName');
-          if (nameField && !nameField.value) nameField.value = fullName;
+          if (nameField) nameField.value = fullName;
         });
       }
     }
@@ -33,12 +516,7 @@
     let activeSubCategory = 'All';
     let cart = {}; 
 
-    // Persistent Cart & Catalog Recovery
-    const savedCart = localStorage.getItem('stockcare_cart_backup');
-    if (savedCart) {
-      try { cart = JSON.parse(savedCart); } catch(e) {}
-    }
-
+    // Instant Load from Cache
     const cachedProducts = localStorage.getItem('stockcare_catalog_cache');
     if (cachedProducts) {
       try {
@@ -46,33 +524,21 @@
         if (allProducts.length > 0) {
           buildCategoryChips(allProducts);
           renderCatalog();
-          updateTotals();
         }
       } catch (e) {
         console.warn("Cache parse error", e);
       }
     }
 
-    // Network Fetch with robust key mapping for AppSheet tables
+    // Network Fetch
     fetch(`${API_URL}/?action=getCatalog`)
       .then(res => {
         if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
         return res.json();
       })
       .then(data => {
-        const rawProducts = data.products || data.rows || (Array.isArray(data) ? data : []);
-        if (data && (data.status === 'success' || rawProducts.length > 0)) {
-          allProducts = rawProducts.map(prod => ({
-            item_ID: prod.item_ID || prod.item_id || prod.ID || prod.id || prod.Product_ID || '',
-            item_code: prod.item_code || prod.Item_Code || prod.Code || '',
-            Item_Name: prod.Item_Name || prod.item_name || prod.Name || prod.Product_Name || 'Unnamed Item',
-            Category: prod.Category || prod.category || 'Uncategorized',
-            Selling_Price: prod.Selling_Price || prod.selling_price || prod.Price || prod.Unit_Price || 0,
-            Total_Qty_Bridge: prod.Total_Qty_Bridge || prod.total_qty_bridge || prod.Qty || prod.Stock_Qty || 0,
-            Stock_Status: prod.Stock_Status || prod.stock_status || 'Good',
-            Expiry_Date: prod.Expiry_Date || prod.expiry_date || prod.Expiry || '',
-            Product_Image_Url: prod.Product_Image_Url || prod.product_image_url || prod.ImageUrl || prod.image_url || ''
-          })).filter(prod => {
+        if (data && data.status === 'success' && Array.isArray(data.products) && data.products.length > 0) {
+          allProducts = data.products.filter(prod => {
             const isNotExpired = (prod.Stock_Status || '').toLowerCase() !== 'expired';
             const qtyAvailable = parseFloat(prod.Total_Qty_Bridge || 0) > 0;
             return isNotExpired && qtyAvailable;
@@ -87,15 +553,14 @@
 
           buildCategoryChips(allProducts);
           renderCatalog();
-          updateTotals();
-        } else {
-          document.getElementById('catalog').innerHTML = `<div id="status-msg">No products available or invalid response format.</div>`;
+        } else if (allProducts.length === 0) {
+          document.getElementById('catalog').innerHTML = `<div id="status-msg">No products available.</div>`;
         }
       })
       .catch(err => {
         console.error("Catalog Fetch Error:", err);
         if (allProducts.length === 0) {
-          document.getElementById('catalog').innerHTML = `<div id="status-msg">Failed to load items: ${err.message}. Check Worker URL & CORS.</div>`;
+          document.getElementById('catalog').innerHTML = `<div id="status-msg">Failed to load items: ${err.message}</div>`;
         }
       });
 
@@ -110,6 +575,7 @@
       
       const categoryList = ['All', 'Baby Care', 'Baby Food & Milk', 'Cosmetics', 'Medical Devices & Supplies'];
 
+      // Group non-standalone classes under Medicine
       const hasMedicine = Array.from(presentCats).some(cat => !isStandaloneCategory(cat));
       if (hasMedicine && !categoryList.includes('Medicine')) {
         categoryList.push('Medicine');
@@ -195,6 +661,7 @@
 
       suggestionBox.style.display = 'none';
 
+      // Category filter logic
       let categoryFiltered = allProducts.filter(prod => {
         const cat = (prod.Category || 'Uncategorized').trim();
         if (activeCategory === 'All') return true;
@@ -273,11 +740,7 @@
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-          ${prod.Product_Image_Url 
-            ? `<img src="${prod.Product_Image_Url}" class="item-thumbnail" alt="${prod.Item_Name || 'Product Image'}" loading="lazy" onerror="this.onerror=null; this.src='https://via.placeholder.com/56?text=No+Img';">` 
-            : `<div class="item-thumbnail" style="display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:10px;">No Image</div>`
-          }
-          <div class="item-info">
+          <div>
             <div class="item-code">${prod.item_code || ''}</div>
             <div class="item-title">${prod.Item_Name || 'Unnamed Item'}</div>
             <div class="item-price">${price} ETB</div>
@@ -304,9 +767,9 @@
     function isExpiringSoon(dateStr) {
       if (!dateStr) return false;
       try {
-        const parts = dateStr.split(/[\/\-]/);
+        const parts = dateStr.split('/');
         if (parts.length === 3) {
-          const expDate = parts[0].length === 4 ? new Date(parts[0], parts[1] - 1, parts[2]) : new Date(parts[2], parts[0] - 1, parts[1]);
+          const expDate = new Date(parts[2], parts[0] - 1, parts[1]);
           const now = new Date();
           const diffDays = (expDate - now) / (1000 * 60 * 60 * 24);
           return diffDays >= 0 && diffDays <= 30;
@@ -320,11 +783,8 @@
     function formatExpiry(dateStr) {
       if (!dateStr) return '';
       try {
-        const parts = dateStr.split(/[\/\-]/);
+        const parts = dateStr.split('/');
         if (parts.length === 3) {
-          if (parts[0].length === 4) {
-            return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
-          }
           return `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
         }
         return dateStr;
@@ -354,7 +814,6 @@
         cart[itemId].qty = newQty;
       }
 
-      localStorage.setItem('stockcare_cart_backup', JSON.stringify(cart));
       updateTotals();
       renderCatalog();
       if (document.getElementById('cartModal').classList.contains('active')) {
@@ -501,7 +960,6 @@
 
       const payload = {
         action: "create_order",
-        init_data: telegramInitData,
         customer: {
           name: name,
           telegram_user_id: telegramUserId,
@@ -523,10 +981,9 @@
       .then(res => res.json())
       .then(data => {
         cart = {};
-        localStorage.removeItem('stockcare_cart_backup');
         document.getElementById('orderNotes').value = '';
         document.getElementById('gpsCoordinates').value = '';
-        document.getElementById('locationBtn').textContent = "📍 Attach GPS Location";
+        document.getElementById('locationBtn').textContent = "📍 Detect My Current GPS Location";
         document.getElementById('locationBtn').style.background = "#e0e7ff";
         document.getElementById('locationBtn').style.color = "#3730a3";
 
@@ -552,3 +1009,5 @@
       });
     }
   </script>
+</body>
+</html>
