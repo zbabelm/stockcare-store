@@ -159,6 +159,25 @@
       background-color: #ffffff;
     }
 
+    /* Placeholder Box for No Image */
+    .item-no-image {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      flex-shrink: 0;
+      background-color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      padding: 4px;
+      line-height: 1.2;
+    }
+
     .item-details {
       flex-grow: 1;
     }
@@ -754,13 +773,17 @@
         const stockBadgeClass = maxQty <= 5 ? 'badge-stock-low' : 'badge-stock-good';
         const expBadgeClass = expiringSoon ? 'badge-exp-warn' : 'badge-exp-normal';
         
-        // Handle Image Property check (supports common naming conventions like Image, Image_URL, Photo, etc.)
+        // Handle Image Property check with onerror fallback to the clean white "No Image" box
         const imageUrl = prod.Image || prod.Image_URL || prod.Photo || prod.picture || '';
+
+        const imageHtml = imageUrl 
+          ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(prod.Item_Name)}" class="item-thumbnail" onerror="this.onerror=null; this.replaceWith(Object.assign(document.createElement('div'), {className: 'item-no-image', innerText: 'No Image'}));">` 
+          : `<div class="item-no-image">No Image</div>`;
 
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-          ${imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(prod.Item_Name)}" class="item-thumbnail">` : `<div class="item-thumbnail"></div>`}
+          ${imageHtml}
           <div class="item-details">
             <div class="item-code">${prod.item_code || ''}</div>
             <div class="item-title">${prod.Item_Name || 'Unnamed Item'}</div>
