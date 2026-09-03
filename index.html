@@ -505,7 +505,6 @@
   <script>
     const API_URL = "https://stockcare-bot.zbabelm.workers.dev";
     
-    // Standalone categories excluded from Medicine
     const STANDALONE_CATEGORIES = [
       "Cosmetics", 
       "Baby Care", 
@@ -514,9 +513,9 @@
       "Medical Devices & Supplies"
     ];
 
-    const tg = window.Telegram ? window.Telegram.WebApp : null;
+    const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
     if (tg) {
-      tg.expand();
+      try { tg.expand(); } catch(e) {}
     }
 
     const telegramUserId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : null;
@@ -558,8 +557,18 @@
         return res.json();
       })
       .then(data => {
-        if (data && data.status === 'success' && Array.isArray(data.products) && data.products.length > 0) {
-          allProducts = data.products.filter(prod => {
+        if (data && data.status === 'success' && Array.isArray(data.products)) {
+          allProducts = data.products.map(prod => ({
+            item_ID: prod.item_ID || prod.item_id || prod.ID || prod.id || '',
+            item_code: prod.item_code || prod.Item_Code || '',
+            Item_Name: prod.Item_Name || prod.item_name || prod.Name || 'Unnamed Item',
+            Category: prod.Category || prod.category || 'Uncategorized',
+            Selling_Price: prod.Selling_Price || prod.selling_price || prod.Price || 0,
+            Total_Qty_Bridge: prod.Total_Qty_Bridge || prod.total_qty_bridge || prod.Qty || 0,
+            Stock_Status: prod.Stock_Status || prod.stock_status || 'Good',
+            Expiry_Date: prod.Expiry_Date || prod.expiry_date || '',
+            Product_Image_Url: prod.Product_Image_Url || prod.product_image_url || prod.ImageUrl || prod.image_url || ''
+          })).filter(prod => {
             const isNotExpired = (prod.Stock_Status || '').toLowerCase() !== 'expired';
             const qtyAvailable = parseFloat(prod.Total_Qty_Bridge || 0) > 0;
             return isNotExpired && qtyAvailable;
@@ -574,14 +583,14 @@
 
           buildCategoryChips(allProducts);
           renderCatalog();
-        } else if (allProducts.length === 0) {
-          document.getElementById('catalog').innerHTML = `<div id="status-msg">No products available.</div>`;
+        } else {
+          document.getElementById('catalog').innerHTML = `<div id="status-msg">No products available or invalid response format.</div>`;
         }
       })
       .catch(err => {
         console.error("Catalog Fetch Error:", err);
         if (allProducts.length === 0) {
-          document.getElementById('catalog').innerHTML = `<div id="status-msg">Failed to load items: ${err.message}</div>`;
+          document.getElementById('catalog').innerHTML = `<div id="status-msg">Failed to load items: ${err.message}. Check Worker URL & CORS.</div>`;
         }
       });
 
@@ -596,7 +605,6 @@
       
       const categoryList = ['All', 'Baby Care', 'Baby Food & Milk', 'Cosmetics', 'Medical Devices & Supplies'];
 
-      // Group non-standalone classes under Medicine
       const hasMedicine = Array.from(presentCats).some(cat => !isStandaloneCategory(cat));
       if (hasMedicine && !categoryList.includes('Medicine')) {
         categoryList.push('Medicine');
@@ -682,7 +690,6 @@
 
       suggestionBox.style.display = 'none';
 
-      // Category filter logic
       let categoryFiltered = allProducts.filter(prod => {
         const cat = (prod.Category || 'Uncategorized').trim();
         if (activeCategory === 'All') return true;
@@ -762,7 +769,7 @@
         card.className = 'card';
         card.innerHTML = `
           ${prod.Product_Image_Url 
-            ? `<img src="${prod.Product_Image_Url}" class="item-thumbnail" alt="${prod.Item_Name || 'Product Image'}" loading="lazy">` 
+            ? `<img src="${prod.Product_Image_Url}" class="item-thumbnail" alt="${prod.Item_Name || 'Product Image'}" loading="lazy" onerror="this.onerror=null; this.src='https://via.placeholder.com/56?text=No+Img';">` 
             : `<div class="item-thumbnail" style="display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:10px;">No Image</div>`
           }
           <div class="item-info">
@@ -1008,7 +1015,7 @@
         cart = {};
         document.getElementById('orderNotes').value = '';
         document.getElementById('gpsCoordinates').value = '';
-        document.getElementById('locationBtn').textContent = "📍 Detect My Current GPS Location";
+        document.getElementById('locationBtn').textContent = "📍 Attach GPS Location";
         document.getElementById('locationBtn').style.background = "#e0e7ff";
         document.getElementById('locationBtn').style.color = "#3730a3";
 
