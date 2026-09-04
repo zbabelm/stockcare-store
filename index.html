@@ -37,7 +37,6 @@
       overflow-x: hidden;
       background-color: var(--bg-color);
       color: var(--text-main);
-      padding-top: var(--sticky-nav-height, 0px);
       padding-bottom: 100px;
     }
 
@@ -912,6 +911,80 @@
       padding: 0 12px;
     }
 
+    /* Fixed header spacer: reserves only the exact header height, without an extra white gap. */
+    #suggestionBox, #catalog {
+      margin-top: var(--sticky-nav-height, 0px);
+    }
+
+    #suggestionBox {
+      margin-bottom: 0;
+    }
+
+    #suggestionBox[style*="display: block"] + #catalog {
+      margin-top: 0;
+    }
+
+    body.modal-open {
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    .product-added-flash {
+      animation: addedFlash 0.35s ease;
+    }
+
+    @keyframes addedFlash {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .checkout-summary {
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 16px;
+    }
+
+    .checkout-summary-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 13px;
+      color: var(--text-muted);
+      padding: 3px 0;
+    }
+
+    .checkout-summary-row.total {
+      margin-top: 5px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border-color);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .location-status {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 5px;
+    }
+
+    .lightbox-close {
+      bottom: 10px;
+      right: 50%;
+      transform: translateX(50%);
+      width: 42px;
+      height: 42px;
+      background: rgba(255,255,255,0.22);
+      border: 1px solid rgba(255,255,255,0.35);
+    }
+
+    .lightbox-card {
+      padding-bottom: 64px;
+    }
+
     .catalog-load-more {
       text-align: center;
       padding: 12px 0 18px;
@@ -1016,9 +1089,19 @@
 
       <div id="cartItemsContainer" style="margin-bottom: 16px; max-height: 250px; overflow-y: auto;"></div>
 
-      <div style="display:flex; justify-content:space-between; margin-bottom:16px; font-weight:700; font-size: 15px;">
-        <span>Total (<span id="modalItemCount">0</span> unique items):</span>
-        <span id="modalGrandTotal">0.00 ETB</span>
+      <div class="checkout-summary">
+        <div class="checkout-summary-row">
+          <span>Items (<span id="modalItemCount">0</span> unique)</span>
+          <span id="modalItemsTotal">0.00 ETB</span>
+        </div>
+        <div class="checkout-summary-row">
+          <span>Delivery</span>
+          <span>Confirmed after order</span>
+        </div>
+        <div class="checkout-summary-row total">
+          <span>Total</span>
+          <span id="modalGrandTotal">0.00 ETB</span>
+        </div>
       </div>
 
       <div class="form-group">
@@ -1040,6 +1123,7 @@
         <button type="button" id="locationBtn" class="btn-location" onclick="captureGPSLocation(true)">
           📍 Attach GPS Location
         </button>
+        <div id="locationStatus" class="location-status">GPS will be attached automatically when available.</div>
         <input type="hidden" id="gpsCoordinates">
       </div>
 
@@ -1296,15 +1380,21 @@
       return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
+    let lightboxScrollY = 0;
+
     function openLightbox(imageUrl, title) {
       if (!imageUrl) return;
+      lightboxScrollY = window.scrollY;
       document.getElementById('lightboxImg').src = imageUrl;
       document.getElementById('lightboxTitle').textContent = title || '';
       document.getElementById('lightboxModal').classList.add('active');
+      document.body.classList.add('modal-open');
     }
 
     function closeLightbox() {
       document.getElementById('lightboxModal').classList.remove('active');
+      document.body.classList.remove('modal-open');
+      window.scrollTo(0, lightboxScrollY);
     }
 
     function renderCatalog() {
@@ -1382,7 +1472,7 @@
           <div class="empty-state">
             <div class="empty-state-icon">🔍</div>
             <div class="empty-state-title">No Matching Items</div>
-            <div class="empty-state-desc">Try checking your spelling or search terms for another product.</div>
+            <div class="empty-state-desc">Try another product name, brand, item code, or check the spelling.</div>
           </div>`;
         return;
       }
@@ -1417,7 +1507,7 @@
         const safeTitle = escapeHtml(prod.Item_Name || 'Unnamed Item');
         const imageHtml = imageUrl
           ? `<div class="image-wrapper" onclick="openLightbox('${escapeHtml(imageUrl)}', '${safeTitle}')">
-               <img src="${escapeHtml(imageUrl)}" alt="${safeTitle}" loading="lazy" decoding="async" class="item-thumbnail" onerror="this.onerror=null; this.parentElement.replaceWith(Object.assign(document.createElement('div'), {className: 'item-no-image', innerText: 'No Image'}));">
+               <img src="${escapeHtml(imageUrl)}" alt="${safeTitle}" loading="${i < 6 ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${i < 6 ? 'high' : 'low'}" class="item-thumbnail" onerror="this.onerror=null; this.parentElement.replaceWith(Object.assign(document.createElement('div'), {className: 'item-no-image', innerText: 'No Image'}));">
                <div class="zoom-badge">🔍 Tap</div>
              </div>`
           : `<div class="item-no-image">No Image</div>`;
@@ -1534,6 +1624,16 @@
 
       updateTotals();
       updateCardControls(itemId, maxQty);
+
+      if (change > 0 && newQty === 1) {
+        const card = document.querySelector(`.card[data-item-id="${CSS.escape(itemId)}"]`);
+        if (card) {
+          card.classList.remove('product-added-flash');
+          void card.offsetWidth;
+          card.classList.add('product-added-flash');
+        }
+      }
+
       if (document.getElementById('cartModal').classList.contains('active')) {
         renderCartModalItems();
       }
@@ -1614,11 +1714,13 @@
       if (Object.keys(cart).length === 0) return;
       renderCartModalItems(true);
       document.getElementById('cartModal').classList.add('active');
+      document.body.classList.add('modal-open');
       captureGPSLocation(false);
     }
 
     function closeCartModal() {
       document.getElementById('cartModal').classList.remove('active');
+      if (!document.getElementById('lightboxModal').classList.contains('active')) document.body.classList.remove('modal-open');
     }
 
     function renderCartModalItems(forceFullRender = false) {
@@ -1708,6 +1810,7 @@
       }
 
       document.getElementById('modalItemCount').textContent = uniqueItemCount;
+      document.getElementById('modalItemsTotal').textContent = `${grandTotal.toFixed(2)} ETB`;
       document.getElementById('modalGrandTotal').textContent = `${grandTotal.toFixed(2)} ETB`;
     }
 
@@ -1733,6 +1836,8 @@
             btn.textContent = "✅ Location Attached!";
             btn.style.background = "#d1fae5";
             btn.style.color = "#065f46";
+            const status = document.getElementById('locationStatus');
+            if (status) status.textContent = "GPS location attached. You can still add a landmark below.";
           },
           () => {
             if (isManualClick) {
@@ -1741,6 +1846,8 @@
             btn.textContent = "📍 Retry Location Detection";
             btn.style.background = "#e0e7ff";
             btn.style.color = "#3730a3";
+            const status = document.getElementById('locationStatus');
+            if (status) status.textContent = "GPS unavailable. Please enter your delivery address or landmark.";
           },
           { enableHighAccuracy: true, timeout: 8000 }
         );
