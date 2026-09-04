@@ -179,10 +179,11 @@
       display: none;
     }
 
+    /* Two-Column Product Grid Layout */
     #catalog {
       padding: 12px 16px;
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, 1fr);
       gap: 10px;
       width: 100%;
       max-width: 100%;
@@ -190,37 +191,34 @@
 
     @media (min-width: 640px) {
       #catalog {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
       }
     }
 
-    /* Horizontal Product Card with Taller Vertical Image */
+    /* Vertical Compact Card Layout */
     .card {
       background-color: var(--card-bg);
       border-radius: 12px;
-      padding: 12px;
+      padding: 10px;
       border: 1px solid var(--border-color);
       display: flex;
-      flex-direction: row;
+      flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.02);
       transition: transform 0.15s ease, box-shadow 0.15s ease;
       min-width: 0;
+      text-align: center;
     }
 
     .card:hover {
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
 
-    .card-left {
-      flex-shrink: 0;
-    }
-
     .image-wrapper {
       position: relative;
-      width: 75px;
-      height: 95px; /* Taller vertical image */
+      width: 100%;
+      height: 110px;
       cursor: pointer;
     }
 
@@ -253,8 +251,8 @@
     }
 
     .item-no-image {
-      width: 75px;
-      height: 95px;
+      width: 100%;
+      height: 110px;
       border-radius: 8px;
       border: 1px solid var(--border-color);
       background-color: #f8fafc;
@@ -267,16 +265,16 @@
       color: var(--text-muted);
     }
 
-    .card-right {
-      flex-grow: 1;
+    .card-body {
+      width: 100%;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      align-items: flex-start;
       min-width: 0;
     }
 
     .item-code {
-      font-size: 10px;
+      font-size: 9px;
       color: var(--text-muted);
       font-weight: 600;
       text-transform: uppercase;
@@ -285,64 +283,39 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      width: 100%;
+      text-align: left;
     }
 
     .item-title {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       color: var(--text-main);
-      line-height: 1.3;
+      line-height: 1.25;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
       margin-bottom: 6px;
-    }
-
-    .item-bottom-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .price-unit-wrapper {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-    }
-
-    .item-price-row {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--primary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .item-unit {
-      font-size: 10px;
-      color: var(--text-muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      height: 30px;
+      text-align: left;
+      width: 100%;
     }
 
     .item-meta {
-      font-size: 10px;
+      font-size: 9px;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       margin-bottom: 6px;
       flex-wrap: wrap;
     }
 
     .badge {
-      padding: 2px 6px;
-      border-radius: 10px;
+      padding: 2px 5px;
+      border-radius: 8px;
       font-weight: 600;
-      font-size: 10px;
+      font-size: 9px;
       display: inline-block;
     }
 
@@ -366,15 +339,47 @@
       color: var(--text-muted);
     }
 
-    /* Compact Right-Aligned Add Button */
+    .item-bottom-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      gap: 4px;
+      margin-top: auto;
+    }
+
+    .price-unit-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      min-width: 0;
+    }
+
+    .item-price-row {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .item-unit {
+      font-size: 9px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     .btn-add {
       background-color: var(--primary);
       color: white;
       border: none;
-      padding: 5px 12px;
+      padding: 4px 10px;
       border-radius: 6px;
       font-weight: 600;
-      font-size: 12px;
+      font-size: 11px;
       cursor: pointer;
       transition: background 0.2s;
       white-space: nowrap;
@@ -390,7 +395,7 @@
       align-items: center;
       justify-content: space-between;
       background-color: #f1f5f9;
-      padding: 2px;
+      padding: 1px;
       border-radius: 6px;
       flex-shrink: 0;
     }
@@ -398,23 +403,23 @@
     .btn-qty {
       background-color: #fff;
       border: 1px solid var(--border-color);
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       border-radius: 4px;
       font-weight: bold;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
+      font-size: 11px;
       color: var(--primary);
     }
 
     .qty-count {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       text-align: center;
-      padding: 0 6px;
+      padding: 0 4px;
     }
 
     .bottom-bar {
@@ -494,7 +499,6 @@
       overflow-y: auto;
     }
 
-    /* Larger Image Lightbox Modal */
     .lightbox-modal {
       display: none;
       position: fixed;
@@ -1105,11 +1109,10 @@
 
         const card = document.createElement('div');
         card.className = 'card';
+        card.dataset.itemId = itemId;
         card.innerHTML = `
-          <div class="card-left">
-            ${imageHtml}
-          </div>
-          <div class="card-right">
+          ${imageHtml}
+          <div class="card-body">
             <div class="item-code">${safeCode}</div>
             <div class="item-title" title="${safeTitle}">${safeTitle}</div>
             
@@ -1123,7 +1126,7 @@
                 <div class="item-price-row">${price} ETB</div>
                 <div class="item-unit">${unitName ? `/ ${escapeHtml(unitName)}` : ''}</div>
               </div>
-              <div id="controls-${itemId}">
+              <div id="controls-${itemId}" class="item-controls-slot">
                 ${currentQty === 0 
                   ? `<button class="btn-add" onclick="updateQty('${itemId}', 1, ${maxQty})">+ Add</button>`
                   : `<div class="qty-controls">
@@ -1193,9 +1196,28 @@
       localStorage.setItem('stockcare_cart', JSON.stringify(cart));
 
       updateTotals();
-      renderCatalog();
+      updateCardControls(itemId, maxQty);
       if (document.getElementById('cartModal').classList.contains('active')) {
         renderCartModalItems();
+      }
+    }
+
+    function updateCardControls(itemId, maxQty) {
+      const controlsSlot = document.getElementById(`controls-${itemId}`);
+      if (!controlsSlot) return;
+
+      const currentQty = cart[itemId] ? cart[itemId].qty : 0;
+
+      if (currentQty === 0) {
+        controlsSlot.innerHTML = `<button class="btn-add" onclick="updateQty('${itemId}', 1, ${maxQty})">+ Add</button>`;
+      } else {
+        controlsSlot.innerHTML = `
+          <div class="qty-controls">
+            <button class="btn-qty" onclick="updateQty('${itemId}', -1, ${maxQty})">-</button>
+            <span class="qty-count">${currentQty}</span>
+            <button class="btn-qty" onclick="updateQty('${itemId}', 1, ${maxQty})">+</button>
+          </div>
+        `;
       }
     }
 
@@ -1204,7 +1226,11 @@
         delete cart[itemId];
         localStorage.setItem('stockcare_cart', JSON.stringify(cart));
         updateTotals();
-        renderCatalog();
+        
+        const prod = allProducts.find(p => p.item_ID === itemId);
+        if (prod) {
+          updateCardControls(itemId, parseFloat(prod.Total_Qty_Bridge || 0));
+        }
         renderCartModalItems();
       }
     }
@@ -1251,7 +1277,7 @@
       }
 
       let grandTotal = 0;
-      const uniqueItemCount = Object.keys(cart).length; // Distinct item rows count
+      const uniqueItemCount = Object.keys(cart).length;
 
       Object.values(cart).forEach(entry => {
         const prod = entry.product;
@@ -1299,7 +1325,9 @@
       if (gpsField.value && !isManualClick) return;
 
       if ("geolocation" in navigator) {
-        if (isManualClick) btn.textContent = "⏳ Attaching Location...";
+        btn.textContent = "⏳ Attaching Location...";
+        btn.style.background = "#fef3c7";
+        btn.style.color = "#92400e";
 
         navigator.geolocation.getCurrentPosition(
           (position) => {
@@ -1316,8 +1344,10 @@
           () => {
             if (isManualClick) {
               alert("Unable to detect GPS. Please enter your address manually.");
-              btn.textContent = "📍 Retry Location Detection";
             }
+            btn.textContent = "📍 Retry Location Detection";
+            btn.style.background = "#e0e7ff";
+            btn.style.color = "#3730a3";
           },
           { enableHighAccuracy: true, timeout: 8000 }
         );
