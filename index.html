@@ -194,6 +194,7 @@
       }
     }
 
+    /* Requirement 2: Vertical/portrait item card layouts in main catalog */
     .card {
       background-color: var(--card-bg);
       border-radius: 12px;
@@ -220,11 +221,10 @@
       width: 100%;
     }
 
-    /* Requirement 1: Compact product card image container (height reduced to 75px) */
     .image-wrapper {
       position: relative;
       width: 100%;
-      height: 75px;
+      height: 95px;
       margin-bottom: 6px;
       cursor: pointer;
     }
@@ -259,7 +259,7 @@
 
     .item-no-image {
       width: 100%;
-      height: 75px;
+      height: 95px;
       border-radius: 8px;
       border: 1px solid var(--border-color);
       background-color: #f8fafc;
@@ -483,7 +483,6 @@
       overflow-y: auto;
     }
 
-    /* Requirement 2 & 3: Lightbox Modal with maximized image and no internal code */
     .lightbox-modal {
       display: none;
       position: fixed;
@@ -593,27 +592,30 @@
       cursor: pointer;
     }
 
+    /* Requirement 1: Compact cart thumbnail styling placed in front of item descriptions */
     .cart-item-row {
       display: flex;
-      align-items: stretch;
-      gap: 12px;
-      padding: 10px 0;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
       border-bottom: 1px solid var(--border-color);
     }
 
     .cart-item-thumbnail {
-      width: 56px;
-      min-width: 56px;
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
       border-radius: 6px;
       object-fit: contain;
       border: 1px solid var(--border-color);
       background-color: #ffffff;
-      align-self: stretch;
+      padding: 2px;
     }
 
     .cart-item-no-image {
-      width: 56px;
-      min-width: 56px;
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
       border-radius: 6px;
       border: 1px solid var(--border-color);
       background-color: #f8fafc;
@@ -621,10 +623,9 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      font-size: 9px;
+      font-size: 8px;
       font-weight: 600;
       color: var(--text-muted);
-      align-self: stretch;
     }
 
     .cart-item-details-wrapper {
@@ -660,7 +661,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      min-width: 80px;
+      min-width: 75px;
     }
 
     #status-msg {
@@ -728,7 +729,7 @@
     <button class="btn-checkout" id="btnBarCheckout" onclick="openCartModal()" disabled>View Cart</button>
   </div>
 
-  <!-- Image Lightbox Modal (Cleaned: no code displayed) -->
+  <!-- Image Lightbox Modal -->
   <div class="lightbox-modal" id="lightboxModal" onclick="closeLightbox()">
     <div class="lightbox-card" onclick="event.stopPropagation()">
       <button class="lightbox-close" onclick="closeLightbox()">✕</button>
@@ -767,8 +768,8 @@
       </div>
 
       <div class="form-group">
-        <label>Delivery Address *</label>
-        <input type="text" id="deliveryAddress" class="form-control" placeholder="City, Subcity, Street / Landmarks">
+        <label>Delivery Address / Neighborhood Description (Optional if GPS attached)</label>
+        <input type="text" id="deliveryAddress" class="form-control" placeholder="e.g. Bole near Dembel or House #123">
       </div>
 
       <div class="form-group">
@@ -783,7 +784,8 @@
         <input type="text" id="orderNotes" class="form-control" placeholder="Special delivery instructions">
       </div>
 
-      <button class="btn-checkout" id="btnSubmitOrder" style="width: 100%; margin-top: 8px; padding: 12px;" onclick="submitOrder()">
+      <!-- Requirement 5: Disable Place Order button if cart is empty -->
+      <button class="btn-checkout" id="btnSubmitOrder" style="width: 100%; margin-top: 8px; padding: 12px;" onclick="submitOrder()" disabled>
         Place Order
       </button>
     </div>
@@ -1184,10 +1186,14 @@
       document.getElementById('barTotal').textContent = grandTotal.toFixed(2) + ' ETB';
 
       const checkoutBtn = document.getElementById('btnBarCheckout');
+      const submitBtn = document.getElementById('btnSubmitOrder');
+      
       if (totalCount > 0) {
         checkoutBtn.removeAttribute('disabled');
+        if (submitBtn) submitBtn.removeAttribute('disabled');
       } else {
         checkoutBtn.setAttribute('disabled', 'true');
+        if (submitBtn) submitBtn.setAttribute('disabled', 'true');
       }
     }
 
@@ -1228,8 +1234,14 @@
 
       if (itemCount === 0) {
         container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:20px;">Your cart is empty.</div>';
+        if (document.getElementById('btnSubmitOrder')) {
+          document.getElementById('btnSubmitOrder').setAttribute('disabled', 'true');
+        }
       } else {
         container.innerHTML = itemsHtml;
+        if (document.getElementById('btnSubmitOrder')) {
+          document.getElementById('btnSubmitOrder').removeAttribute('disabled');
+        }
       }
 
       document.getElementById('modalItemCount').textContent = itemCount;
@@ -1267,7 +1279,10 @@
         return;
       }
 
-      btn.textContent = "📍 Locating...";
+      if (isUserAction) {
+        btn.textContent = "📍 Locating...";
+      }
+
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const lat = position.coords.latitude;
@@ -1295,8 +1310,14 @@
       const gps = document.getElementById('gpsCoordinates').value.trim();
       const notes = document.getElementById('orderNotes').value.trim();
 
-      if (!name || !phone || !address) {
-        alert("Please fill in all required fields (Name, Phone, Delivery Address).");
+      if (!name || !phone) {
+        alert("Please fill in your Full Name and Phone Number.");
+        return;
+      }
+
+      // Requirement 4: Address is optional if GPS is attached or neighborhood description provided
+      if (!address && !gps) {
+        alert("Please provide either a Delivery Address / neighborhood description or attach your GPS location.");
         return;
       }
 
@@ -1322,7 +1343,7 @@
         telegram_user_id: telegramUserId,
         customer_name: name,
         customer_phone: phone,
-        delivery_address: address,
+        delivery_address: address || 'GPS Location Only',
         gps_location: gps,
         order_notes: notes,
         items: orderItems
@@ -1362,6 +1383,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      // Automatically request GPS position on startup
       captureGPSLocation(false);
     });
   </script>
