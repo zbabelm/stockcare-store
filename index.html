@@ -143,39 +143,49 @@
       padding: 14px;
       border: 1px solid var(--border-color);
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      flex-direction: column;
       gap: 12px;
     }
 
-    /* Product Thumbnail Styling */
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .card-bottom-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    /* Product Thumbnail Styling - Full width / expanded in card */
     .item-thumbnail {
-      width: 60px;
-      height: 60px;
+      width: 100%;
+      height: 160px;
       border-radius: 8px;
       object-fit: cover;
       border: 1px solid var(--border-color);
-      flex-shrink: 0;
       background-color: #ffffff;
     }
 
-    /* Placeholder Box for No Image */
+    /* Placeholder Box for No Image - Full width */
     .item-no-image {
-      width: 60px;
-      height: 60px;
+      width: 100%;
+      height: 120px;
       border-radius: 8px;
       border: 1px solid var(--border-color);
-      flex-shrink: 0;
-      background-color: #ffffff;
+      background-color: #f8fafc;
       display: flex;
       align-items: center;
       justify-content: center;
       text-align: center;
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 600;
       color: var(--text-muted);
       padding: 4px;
-      line-height: 1.2;
     }
 
     .item-details {
@@ -550,6 +560,16 @@
     let activeSubCategory = 'All';
     let cart = {}; 
 
+    // Load Cart from localStorage if present
+    const savedCart = localStorage.getItem('stockcare_cart');
+    if (savedCart) {
+      try {
+        cart = JSON.parse(savedCart);
+      } catch (e) {
+        console.warn("Cart parse error", e);
+      }
+    }
+
     // Instant Load from Cache
     const cachedProducts = localStorage.getItem('stockcare_catalog_cache');
     if (cachedProducts) {
@@ -558,6 +578,7 @@
         if (allProducts.length > 0) {
           buildCategoryChips(allProducts);
           renderCatalog();
+          updateTotals();
         }
       } catch (e) {
         console.warn("Cache parse error", e);
@@ -587,6 +608,7 @@
 
           buildCategoryChips(allProducts);
           renderCatalog();
+          updateTotals();
         } else if (allProducts.length === 0) {
           document.getElementById('catalog').innerHTML = `<div id="status-msg">No products available.</div>`;
         }
@@ -767,13 +789,13 @@
         const maxQty = parseFloat(prod.Total_Qty_Bridge || 0);
         
         const price = prod.Selling_Price ? parseFloat(prod.Selling_Price).toFixed(2) : '0.00';
+        const unitName = prod.Unit || prod.unit || '';
         const expiry = formatExpiry(prod.Expiry_Date);
         const expiringSoon = isExpiringSoon(prod.Expiry_Date);
 
         const stockBadgeClass = maxQty <= 5 ? 'badge-stock-low' : 'badge-stock-good';
         const expBadgeClass = expiringSoon ? 'badge-exp-warn' : 'badge-exp-normal';
         
-        // Handle Image Property check with onerror fallback to the clean white "No Image" box
         const imageUrl = prod.Image || prod.Image_URL || prod.Photo || prod.picture || '';
 
         const imageHtml = imageUrl 
@@ -784,24 +806,29 @@
         card.className = 'card';
         card.innerHTML = `
           ${imageHtml}
-          <div class="item-details">
-            <div class="item-code">${prod.item_code || ''}</div>
-            <div class="item-title">${prod.Item_Name || 'Unnamed Item'}</div>
-            <div class="item-price">${price} ETB</div>
-            <div class="item-meta">
-              <span class="badge ${stockBadgeClass}">Stock: ${maxQty}</span>
-              ${expiry ? `<span class="badge ${expBadgeClass}">Exp: ${expiry}</span>` : ''}
+          <div class="card-top">
+            <div class="item-details">
+              <div class="item-code">${prod.item_code || ''}</div>
+              <div class="item-title">${prod.Item_Name || 'Unnamed Item'}</div>
+              <div class="item-price">${price} ETB ${unitName ? `/ ${escapeHtml(unitName)}` : ''}</div>
+              <div class="item-meta">
+                <span class="badge ${stockBadgeClass}">Stock: ${maxQty}</span>
+                ${expiry ? `<span class="badge ${expBadgeClass}">Exp: ${expiry}</span>` : ''}
+              </div>
             </div>
           </div>
-          <div id="controls-${itemId}">
-            ${currentQty === 0 
-              ? `<button class="btn-add" onclick="updateQty('${itemId}', 1, ${maxQty})">Add</button>`
-              : `<div class="qty-controls">
-                  <button class="btn-qty" onclick="updateQty('${itemId}', -1, ${maxQty})">-</button>
-                  <span class="qty-count">${currentQty}</span>
-                  <button class="btn-qty" onclick="updateQty('${itemId}', 1, ${maxQty})">+</button>
-                </div>`
-            }
+          <div class="card-bottom-row">
+            <div style="font-size: 12px; color: var(--text-muted);">Unit: ${unitName ? escapeHtml(unitName) : 'N/A'}</div>
+            <div id="controls-${itemId}">
+              ${currentQty === 0 
+                ? `<button class="btn-add" onclick="updateQty('${itemId}', 1, ${maxQty})">Add</button>`
+                : `<div class="qty-controls">
+                    <button class="btn-qty" onclick="updateQty('${itemId}', -1, ${maxQty})">-</button>
+                    <span class="qty-count">${currentQty}</span>
+                    <button class="btn-qty" onclick="updateQty('${itemId}', 1, ${maxQty})">+</button>
+                  </div>`
+              }
+            </div>
           </div>
         `;
         catalogDiv.appendChild(card);
@@ -857,6 +884,9 @@
       } else {
         cart[itemId].qty = newQty;
       }
+
+      // Save cart state to localStorage
+      localStorage.setItem('stockcare_cart', JSON.stringify(cart));
 
       updateTotals();
       renderCatalog();
@@ -914,6 +944,7 @@
         const price = parseFloat(prod.Selling_Price || 0);
         const subtotal = price * entry.qty;
         const maxQty = parseFloat(prod.Total_Qty_Bridge || 0);
+        const unitName = prod.Unit || prod.unit || '';
 
         grandTotal += subtotal;
         totalItemsCount += entry.qty;
@@ -922,8 +953,8 @@
         row.className = 'cart-item-row';
         row.innerHTML = `
           <div class="cart-item-info">
-            <div class="cart-item-name">${prod.Item_Name}</div>
-            <div class="cart-item-details">${price.toFixed(2)} ETB × ${entry.qty}</div>
+            <div class="cart-item-name">[${prod.item_code || ''}] ${prod.Item_Name}</div>
+            <div class="cart-item-details">${price.toFixed(2)} ETB ${unitName ? `/ ${escapeHtml(unitName)}` : ''} × ${entry.qty}</div>
             <div class="cart-item-subtotal">Subtotal: ${subtotal.toFixed(2)} ETB</div>
           </div>
           <div class="qty-controls">
@@ -995,6 +1026,7 @@
         item_ID: entry.product.item_ID,
         item_code: entry.product.item_code || '',
         item_name: entry.product.Item_Name,
+        unit: entry.product.Unit || entry.product.unit || '',
         unit_price: parseFloat(entry.product.Selling_Price || 0),
         quantity: entry.qty,
         subtotal: parseFloat(entry.product.Selling_Price || 0) * entry.qty
@@ -1025,6 +1057,7 @@
       .then(res => res.json())
       .then(data => {
         cart = {};
+        localStorage.removeItem('stockcare_cart');
         document.getElementById('orderNotes').value = '';
         document.getElementById('gpsCoordinates').value = '';
         document.getElementById('locationBtn').textContent = "📍 Detect My Current GPS Location";
