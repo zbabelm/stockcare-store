@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>StockCare Storefront</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
   <style>
     :root {
       --primary: #2563eb;
@@ -393,6 +393,24 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+
+    /* Quick Add Button */
+    .btn-add {
+      background-color: var(--primary);
+      color: #fff;
+      border: none;
+      min-width: 72px;
+      height: 32px;
+      padding: 0 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .btn-add:hover { background-color: var(--primary-hover); }
+    .btn-add:active { transform: scale(0.96); }
 
     /* Quick-Add Stepper Controls */
     .qty-controls {
@@ -1247,6 +1265,7 @@
       const catalogDiv = document.getElementById('catalog');
       const suggestionBox = document.getElementById('suggestionBox');
       const searchTerm = searchInput.value.toLowerCase().trim();
+      const normalizedSearchTerm = searchTerm.replace(/\s+/g, ' ');
 
       suggestionBox.style.display = 'none';
 
@@ -1275,8 +1294,8 @@
 
       if (searchTerm.length > 0) {
         finalFiltered = categoryFiltered.filter(prod => {
-          return (prod.Item_Name || '').toLowerCase().includes(searchTerm) || 
-                 (prod.item_code || '').toLowerCase().includes(searchTerm);
+          return (prod.Item_Name || '').toLowerCase().includes(normalizedSearchTerm) || 
+                 (prod.item_code || '').toLowerCase().includes(normalizedSearchTerm);
         });
 
         if (finalFiltered.length === 0 && searchTerm.length >= 3) {
@@ -1364,11 +1383,13 @@
               <div class="item-unit">${unitName ? `/ ${escapeHtml(unitName)}` : ''}</div>
             </div>
             <div id="controls-${itemId}">
-              <div class="qty-controls">
-                <button class="btn-qty" onclick="updateQty('${itemId}', -1, ${maxQty})">-</button>
-                <span class="qty-count">${currentQty}</span>
-                <button class="btn-qty" onclick="updateQty('${itemId}', 1, ${maxQty})">+</button>
-              </div>
+              ${currentQty > 0
+                ? `<div class="qty-controls">
+                    <button class="btn-qty" onclick="updateQty('${itemId}', -1, ${maxQty})">-</button>
+                    <span class="qty-count">${currentQty}</span>
+                    <button class="btn-qty" onclick="updateQty('${itemId}', 1, ${maxQty})">+</button>
+                  </div>`
+                : `<button class="btn-add" onclick="updateQty('${itemId}', 1, ${maxQty})">Add</button>`}
             </div>
           </div>
         `;
@@ -1440,13 +1461,18 @@
       if (!controlsSlot) return;
 
       const currentQty = cart[itemId] ? cart[itemId].qty : 0;
-      controlsSlot.innerHTML = `
-        <div class="qty-controls">
-          <button class="btn-qty" onclick="updateQty('${itemId}', -1, ${maxQty})">-</button>
-          <span class="qty-count">${currentQty}</span>
-          <button class="btn-qty" onclick="updateQty('${itemId}', 1, ${maxQty})">+</button>
-        </div>
-      `;
+
+      if (currentQty > 0) {
+        controlsSlot.innerHTML = `
+          <div class="qty-controls">
+            <button class="btn-qty" onclick="updateQty('${itemId}', -1, ${maxQty})">-</button>
+            <span class="qty-count">${currentQty}</span>
+            <button class="btn-qty" onclick="updateQty('${itemId}', 1, ${maxQty})">+</button>
+          </div>`;
+      } else {
+        controlsSlot.innerHTML = `
+          <button class="btn-add" onclick="updateQty('${itemId}', 1, ${maxQty})">Add</button>`;
+      }
     }
 
     function removeFromCart(itemId) {
@@ -1476,25 +1502,25 @@
 
     function updateTotals() {
       let totalUnits = 0;
-      let uniqueTypes = 0;
+      const uniqueTypes = Object.keys(cart).length;
       let grandTotal = 0;
 
       Object.values(cart).forEach(entry => {
         totalUnits += entry.qty;
-        uniqueTypes += 1;
         const price = parseFloat(entry.product.Selling_Price || 0);
         grandTotal += price * entry.qty;
       });
 
-      document.getElementById('cartBadgeCounter').textContent = totalUnits;
+      // Cart count represents selected product types, not total quantity.
+      document.getElementById('cartBadgeCounter').textContent = uniqueTypes;
       document.getElementById('cartItemTypesCount').textContent = uniqueTypes;
       document.getElementById('barTotal').textContent = `${grandTotal.toFixed(2)} ETB`;
-      
-      const btnCheckout = document.getElementById('btnBarCheckout');
-      btnCheckout.disabled = totalUnits === 0;
-      btnCheckout.innerHTML = totalUnits > 0 ? `View Cart (${totalUnits}) ➔` : 'View Cart ➔';
 
-      if (totalUnits > 0) {
+      const btnCheckout = document.getElementById('btnBarCheckout');
+      btnCheckout.disabled = uniqueTypes === 0;
+      btnCheckout.innerHTML = uniqueTypes > 0 ? `View Cart (${uniqueTypes}) ➔` : 'View Cart ➔';
+
+      if (uniqueTypes > 0) {
         const cartWrapper = document.getElementById('cartIconWrapper');
         cartWrapper.classList.add('cart-bump');
         setTimeout(() => cartWrapper.classList.remove('cart-bump'), 200);
