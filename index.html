@@ -108,7 +108,6 @@
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
     }
 
-    /* Improved Categories: Wrapped Grid instead of hidden sideways scroll */
     .categories-container {
       display: flex;
       flex-wrap: wrap;
@@ -180,7 +179,6 @@
       display: none;
     }
 
-    /* Modern 2-Column Grid Layout for Catalog with strict containment */
     #catalog {
       padding: 16px;
       display: grid;
@@ -206,7 +204,7 @@
       justify-content: space-between;
       box-shadow: 0 1px 3px rgba(0,0,0,0.02);
       transition: transform 0.15s ease, box-shadow 0.15s ease;
-      min-width: 0; /* prevents flex/grid blowout */
+      min-width: 0;
     }
 
     .card:hover {
@@ -222,15 +220,40 @@
       width: 100%;
     }
 
-    .item-thumbnail {
+    .image-wrapper {
+      position: relative;
       width: 100%;
       height: 110px;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+
+    .item-thumbnail {
+      width: 100%;
+      height: 100%;
       border-radius: 8px;
       object-fit: contain;
       border: 1px solid var(--border-color);
       background-color: #ffffff;
-      margin-bottom: 8px;
       padding: 4px;
+      transition: opacity 0.2s;
+    }
+
+    .image-wrapper:hover .item-thumbnail {
+      opacity: 0.9;
+    }
+
+    .zoom-badge {
+      position: absolute;
+      bottom: 6px;
+      right: 6px;
+      background: rgba(15, 23, 42, 0.75);
+      color: white;
+      font-size: 9px;
+      padding: 2px 5px;
+      border-radius: 4px;
+      pointer-events: none;
+      backdrop-filter: blur(2px);
     }
 
     .item-no-image {
@@ -472,6 +495,77 @@
       overflow-y: auto;
     }
 
+    /* Lightbox Modal Specifics */
+    .lightbox-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0,0,0,0.85);
+      z-index: 40;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .lightbox-modal.active {
+      display: flex;
+    }
+
+    .lightbox-card {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 20px;
+      max-width: 90vw;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .lightbox-image {
+      max-width: 100%;
+      max-height: 60vh;
+      object-fit: contain;
+      border-radius: 8px;
+      background: #fff;
+      padding: 8px;
+    }
+
+    .lightbox-title {
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 12px;
+      text-align: center;
+    }
+
+    .lightbox-code {
+      color: #94a3b8;
+      font-size: 11px;
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     .modal-header {
       display: flex;
       justify-content: space-between;
@@ -649,6 +743,16 @@
       <span class="cart-total" id="barTotal">0.00 ETB</span>
     </div>
     <button class="btn-checkout" id="btnBarCheckout" onclick="openCartModal()" disabled>View Cart</button>
+  </div>
+
+  <!-- Image Lightbox Modal -->
+  <div class="lightbox-modal" id="lightboxModal" onclick="closeLightbox()">
+    <div class="lightbox-card" onclick="event.stopPropagation()">
+      <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+      <img id="lightboxImg" class="lightbox-image" src="" alt="Product Full View">
+      <div class="lightbox-title" id="lightboxTitle"></div>
+      <div class="lightbox-code" id="lightboxCode"></div>
+    </div>
   </div>
 
   <!-- Cart Modal -->
@@ -887,6 +991,18 @@
       return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
+    function openLightbox(imageUrl, title, code) {
+      if (!imageUrl) return;
+      document.getElementById('lightboxImg').src = imageUrl;
+      document.getElementById('lightboxTitle').textContent = title || '';
+      document.getElementById('lightboxCode').textContent = code ? `Code: ${code}` : '';
+      document.getElementById('lightboxModal').classList.add('active');
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightboxModal').classList.remove('active');
+    }
+
     function renderCatalog() {
       const catalogDiv = document.getElementById('catalog');
       const suggestionBox = document.getElementById('suggestionBox');
@@ -972,8 +1088,14 @@
         
         const imageUrl = prod.Image || prod.Image_URL || prod.Photo || prod.picture || '';
 
+        const safeTitle = escapeHtml(prod.Item_Name || 'Unnamed Item');
+        const safeCode = escapeHtml(prod.item_code || '');
+
         const imageHtml = imageUrl 
-          ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(prod.Item_Name)}" class="item-thumbnail" onerror="this.onerror=null; this.replaceWith(Object.assign(document.createElement('div'), {className: 'item-no-image', innerText: 'No Image'}));">` 
+          ? `<div class="image-wrapper" onclick="openLightbox('${escapeHtml(imageUrl)}', '${safeTitle}', '${safeCode}')">
+               <img src="${escapeHtml(imageUrl)}" alt="${safeTitle}" class="item-thumbnail" onerror="this.onerror=null; this.parentElement.replaceWith(Object.assign(document.createElement('div'), {className: 'item-no-image', innerText: 'No Image'}));">
+               <div class="zoom-badge">🔍 Tap</div>
+             </div>` 
           : `<div class="item-no-image">No Image</div>`;
 
         const card = document.createElement('div');
@@ -981,8 +1103,8 @@
         card.innerHTML = `
           <div class="card-top">
             ${imageHtml}
-            <div class="item-code">${prod.item_code || ''}</div>
-            <div class="item-title" title="${escapeHtml(prod.Item_Name)}">${escapeHtml(prod.Item_Name || 'Unnamed Item')}</div>
+            <div class="item-code">${safeCode}</div>
+            <div class="item-title" title="${safeTitle}">${safeTitle}</div>
             
             <div class="item-price-row">
               <span class="item-price">${price} <span style="font-size:10px; font-weight:normal;">ETB</span></span>
