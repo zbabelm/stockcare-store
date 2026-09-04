@@ -162,13 +162,13 @@
       padding-top: 10px;
     }
 
-    /* Updated to object-fit: cover so image fills the box and eliminates side white leftovers */
+    /* Changed to object-fit: contain to prevent zooming/cropping */
     .item-thumbnail {
       width: 110px;
       height: 110px;
       min-width: 110px;
       border-radius: 8px;
-      object-fit: cover;
+      object-fit: contain;
       border: 1px solid var(--border-color);
       background-color: #ffffff;
     }
@@ -398,17 +398,48 @@
       cursor: pointer;
     }
 
+    /* Updated cart item layout to stretch picture from top to bottom */
     .cart-item-row {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 0;
+      align-items: stretch;
+      gap: 12px;
+      padding: 10px 0;
       border-bottom: 1px solid var(--border-color);
     }
 
-    .cart-item-info {
+    .cart-item-thumbnail {
+      width: 64px;
+      min-width: 64px;
+      border-radius: 6px;
+      object-fit: contain;
+      border: 1px solid var(--border-color);
+      background-color: #ffffff;
+      align-self: stretch;
+      height: auto;
+    }
+
+    .cart-item-no-image {
+      width: 64px;
+      min-width: 64px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background-color: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--text-muted);
+      align-self: stretch;
+      padding: 2px;
+    }
+
+    .cart-item-details-wrapper {
+      flex-grow: 1;
       display: flex;
       flex-direction: column;
+      justify-content: center;
     }
 
     .cart-item-name {
@@ -425,6 +456,12 @@
       font-size: 12px;
       font-weight: 700;
       color: var(--primary);
+    }
+
+    .cart-item-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     #status-msg {
@@ -942,22 +979,30 @@
         const subtotal = price * entry.qty;
         const maxQty = parseFloat(prod.Total_Qty_Bridge || 0);
         const unitName = prod.Unit || prod.unit || '';
+        const imageUrl = prod.Image || prod.Image_URL || prod.Photo || prod.picture || '';
 
         grandTotal += subtotal;
         totalItemsCount += entry.qty;
 
+        const imageHtml = imageUrl 
+          ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(prod.Item_Name)}" class="cart-item-thumbnail" onerror="this.onerror=null; this.replaceWith(Object.assign(document.createElement('div'), {className: 'cart-item-no-image', innerText: 'No Image'}));">` 
+          : `<div class="cart-item-no-image">No Image</div>`;
+
         const row = document.createElement('div');
         row.className = 'cart-item-row';
         row.innerHTML = `
-          <div class="cart-item-info">
+          ${imageHtml}
+          <div class="cart-item-details-wrapper">
             <div class="cart-item-name">[${prod.item_code || ''}] ${prod.Item_Name}</div>
             <div class="cart-item-details">${price.toFixed(2)} ETB ${unitName ? `/ ${escapeHtml(unitName)}` : ''} × ${entry.qty}</div>
             <div class="cart-item-subtotal">Subtotal: ${subtotal.toFixed(2)} ETB</div>
           </div>
-          <div class="qty-controls">
-            <button class="btn-qty" onclick="updateQty('${prod.item_ID}', -1, ${maxQty})">-</button>
-            <span class="qty-count">${entry.qty}</span>
-            <button class="btn-qty" onclick="updateQty('${prod.item_ID}', 1, ${maxQty})">+</button>
+          <div class="cart-item-controls">
+            <div class="qty-controls">
+              <button class="btn-qty" onclick="updateQty('${prod.item_ID}', -1, ${maxQty})">-</button>
+              <span class="qty-count">${entry.qty}</span>
+              <button class="btn-qty" onclick="updateQty('${prod.item_ID}', 1, ${maxQty})">+</button>
+            </div>
           </div>
         `;
         container.appendChild(row);
@@ -1060,23 +1105,20 @@
         document.getElementById('locationBtn').textContent = "📍 Attach GPS Location";
         document.getElementById('locationBtn').style.background = "#e0e7ff";
         document.getElementById('locationBtn').style.color = "#3730a3";
-
         updateTotals();
         renderCatalog();
-        closeCartModal();
 
+        document.getElementById('successAlert').style.display = 'block';
         btnSubmit.disabled = false;
         btnSubmit.textContent = "Place Order";
 
-        const alertBox = document.getElementById('successAlert');
-        alertBox.style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-
         setTimeout(() => {
-          alertBox.style.display = 'none';
-        }, 5000);
+          document.getElementById('successAlert').style.display = 'none';
+          closeCartModal();
+        }, 3000);
       })
       .catch(err => {
+        console.error("Order Submit Error:", err);
         alert("Failed to submit order. Please try again.");
         btnSubmit.disabled = false;
         btnSubmit.textContent = "Place Order";
