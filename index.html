@@ -42,9 +42,10 @@
 
     /* Sticky Navigation Wrapper */
     .sticky-nav-wrapper {
+      position: -webkit-sticky;
       position: sticky;
       top: 0;
-      z-index: 10;
+      z-index: 1000;
       width: 100%;
       background-color: rgba(255, 255, 255, 0.98);
       backdrop-filter: blur(8px);
@@ -1021,10 +1022,6 @@
       <div class="form-group">
         <label>Phone Number *</label>
         <input type="tel" id="customerPhone" class="form-control" placeholder="e.g. 0911223344">
-        <button type="button" id="telegramPhoneBtn" class="btn-location" style="margin-top:8px;" onclick="requestTelegramPhone()">
-          📱 Use my Telegram phone
-        </button>
-        <div id="telegramPhoneHint" style="font-size:11px;color:var(--text-muted);margin-top:5px;display:none;"></div>
       </div>
 
       <div class="form-group">
@@ -1072,12 +1069,8 @@
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
       const user = tg.initDataUnsafe.user;
       const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
-      if (fullName) {
-        document.addEventListener('DOMContentLoaded', () => {
-          const nameField = document.getElementById('customerName');
-          if (nameField) nameField.value = fullName;
-        });
-      }
+      const nameField = document.getElementById('customerName');
+      if (nameField && fullName) nameField.value = fullName;
     }
 
     let allProducts = [];
@@ -1085,7 +1078,8 @@
     let activeSubCategory = 'All';
     let cart = {};
     const productById = new Map();
-    const RENDER_BATCH_SIZE = 48;
+    const RENDER_BATCH_SIZE = 100;
+    let catalogLoadingMore = false;
     let currentRenderProducts = [];
     let renderedProductCount = 0;
     let catalogObserver = null;
@@ -1371,12 +1365,24 @@
         return;
       }
 
+      const status = document.createElement('div');
+      status.id = 'catalogLoadStatus';
+      status.className = 'catalog-load-more';
+      catalogDiv.appendChild(status);
       appendNextCatalogBatch();
     }
 
     function appendNextCatalogBatch() {
+      if (catalogLoadingMore) return;
+      catalogLoadingMore = true;
+
       const catalogDiv = document.getElementById('catalog');
+      const status = document.getElementById('catalogLoadStatus');
+      const oldSentinel = document.getElementById('catalogSentinel');
+      if (oldSentinel) oldSentinel.remove();
+
       const nextEnd = Math.min(renderedProductCount + RENDER_BATCH_SIZE, currentRenderProducts.length);
+      const html = [];
 
       for (let i = renderedProductCount; i < nextEnd; i++) {
         const prod = currentRenderProducts[i];
@@ -1392,58 +1398,59 @@
         const expBadgeClass = expiringSoon ? 'badge-exp-warn' : 'badge-exp-normal';
         const imageUrl = prod.Image || prod.Image_URL || prod.Photo || prod.picture || '';
         const safeTitle = escapeHtml(prod.Item_Name || 'Unnamed Item');
-
         const imageHtml = imageUrl
           ? `<div class="image-wrapper" onclick="openLightbox('${escapeHtml(imageUrl)}', '${safeTitle}')">
-               <img src="${escapeHtml(imageUrl)}" alt="${safeTitle}" loading="lazy" class="item-thumbnail" onerror="this.onerror=null; this.parentElement.replaceWith(Object.assign(document.createElement('div'), {className: 'item-no-image', innerText: 'No Image'}));">
+               <img src="${escapeHtml(imageUrl)}" alt="${safeTitle}" loading="lazy" decoding="async" class="item-thumbnail" onerror="this.onerror=null; this.parentElement.replaceWith(Object.assign(document.createElement('div'), {className: 'item-no-image', innerText: 'No Image'}));">
                <div class="zoom-badge">🔍 Tap</div>
              </div>`
           : `<div class="item-no-image">No Image</div>`;
 
-        const card = document.createElement('div');
-        card.className = `card ${isLowStock ? 'low-stock' : ''}`;
-        card.dataset.itemId = itemId;
-        card.innerHTML = `
-          <div class="card-top-section">
-            ${imageHtml}
-            <div class="card-info">
-              <div class="item-title" title="${safeTitle}">${safeTitle}</div>
-              <div class="item-meta">
-                <span class="badge ${stockBadgeClass}">Stock: ${maxQty}</span>
-                ${expiry ? `<span class="badge ${expBadgeClass}">Exp: ${expiry}</span>` : ''}
+        html.push(`
+          <div class="card ${isLowStock ? 'low-stock' : ''}" data-item-id="${escapeHtml(itemId)}">
+            <div class="card-top-section">
+              ${imageHtml}
+              <div class="card-info">
+                <div class="item-title" title="${safeTitle}">${safeTitle}</div>
+                <div class="item-meta">
+                  <span class="badge ${stockBadgeClass}">Stock: ${maxQty}</span>
+                  ${expiry ? `<span class="badge ${expBadgeClass}">Exp: ${expiry}</span>` : ''}
+                </div>
               </div>
             </div>
-          </div>
-          <div class="item-bottom-row">
-            <div class="price-unit-wrapper">
-              <div class="item-price-row">${price} ETB</div>
-              <div class="item-unit">${unitName ? `/ ${escapeHtml(unitName)}` : ''}</div>
+            <div class="item-bottom-row">
+              <div class="price-unit-wrapper">
+                <div class="item-price-row">${price} ETB</div>
+                <div class="item-unit">${unitName ? `/ ${escapeHtml(unitName)}` : ''}</div>
+              </div>
+              <div id="controls-${escapeHtml(itemId)}">
+                ${currentQty > 0
+                  ? `<div class="qty-controls">
+                      <button class="btn-qty" onclick="updateQty('${escapeHtml(itemId)}', -1, ${maxQty})">-</button>
+                      <span class="qty-count">${currentQty}</span>
+                      <button class="btn-qty" onclick="updateQty('${escapeHtml(itemId)}', 1, ${maxQty})">+</button>
+                    </div>`
+                  : `<button class="btn-add" onclick="updateQty('${escapeHtml(itemId)}', 1, ${maxQty})">Add</button>`}
+              </div>
             </div>
-            <div id="controls-${itemId}">
-              ${currentQty > 0
-                ? `<div class="qty-controls">
-                    <button class="btn-qty" onclick="updateQty('${itemId}', -1, ${maxQty})">-</button>
-                    <span class="qty-count">${currentQty}</span>
-                    <button class="btn-qty" onclick="updateQty('${itemId}', 1, ${maxQty})">+</button>
-                  </div>`
-                : `<button class="btn-add" onclick="updateQty('${itemId}', 1, ${maxQty})">Add</button>`}
-            </div>
-          </div>`;
-        catalogDiv.appendChild(card);
+          </div>`);
       }
+
+      // One DOM insertion is much faster than creating/appending 100 cards individually.
+      const temp = document.createElement('div');
+      temp.innerHTML = html.join('');
+      const fragment = document.createDocumentFragment();
+      while (temp.firstChild) fragment.appendChild(temp.firstChild);
+      catalogDiv.appendChild(fragment);
 
       renderedProductCount = nextEnd;
 
-      let status = document.getElementById('catalogLoadStatus');
-      if (!status) {
-        status = document.createElement('div');
-        status.id = 'catalogLoadStatus';
-        status.className = 'catalog-load-more';
-        catalogDiv.appendChild(status);
+      if (status) {
+        status.textContent = renderedProductCount < currentRenderProducts.length
+          ? `Showing ${renderedProductCount} of ${currentRenderProducts.length}`
+          : (currentRenderProducts.length > RENDER_BATCH_SIZE ? `Showing all ${currentRenderProducts.length} products` : '');
       }
 
       if (renderedProductCount < currentRenderProducts.length) {
-        status.textContent = `Showing ${renderedProductCount} of ${currentRenderProducts.length}`;
         const sentinel = document.createElement('div');
         sentinel.className = 'catalog-sentinel';
         sentinel.id = 'catalogSentinel';
@@ -1451,17 +1458,15 @@
 
         if (catalogObserver) catalogObserver.disconnect();
         catalogObserver = new IntersectionObserver(entries => {
-          if (entries[0].isIntersecting) {
-            document.getElementById('catalogSentinel')?.remove();
+          if (entries[0].isIntersecting && !catalogLoadingMore) {
             appendNextCatalogBatch();
           }
-        }, { rootMargin: '600px 0px' });
+        }, { rootMargin: '150px 0px', threshold: 0 });
         catalogObserver.observe(sentinel);
-      } else {
-        status.textContent = currentRenderProducts.length > RENDER_BATCH_SIZE
-          ? `Showing all ${currentRenderProducts.length} products`
-          : '';
       }
+
+      // Let the browser paint before another lazy-load batch can run.
+      requestAnimationFrame(() => { catalogLoadingMore = false; });
     }
 
     function isExpiringSoon(dateStr) {
@@ -1599,39 +1604,6 @@
       renderCartModalItems(true);
       document.getElementById('cartModal').classList.add('active');
       captureGPSLocation(false);
-
-      // Telegram can ask the user to share their phone, but the Mini App
-      // does not receive the phone number itself. The bot receives it as a
-      // contact, so the backend can associate it with telegram_user_id.
-      const phoneField = document.getElementById('customerPhone');
-      if (tg && typeof tg.requestContact === 'function' && !phoneField.value.trim()) {
-        requestTelegramPhone();
-      }
-    }
-
-    function requestTelegramPhone() {
-      const btn = document.getElementById('telegramPhoneBtn');
-      const hint = document.getElementById('telegramPhoneHint');
-      if (!tg || typeof tg.requestContact !== 'function') {
-        hint.textContent = 'Telegram phone sharing is not available here. Please enter your number manually.';
-        hint.style.display = 'block';
-        return;
-      }
-
-      btn.disabled = true;
-      btn.textContent = '⏳ Requesting Telegram phone...';
-      tg.requestContact((shared) => {
-        btn.disabled = false;
-        if (shared) {
-          btn.textContent = '✅ Phone shared with Telegram bot';
-          hint.textContent = 'Your Telegram phone was sent to the bot. The bot can link it to this order using your Telegram ID.';
-          hint.style.display = 'block';
-        } else {
-          btn.textContent = '📱 Use my Telegram phone';
-          hint.textContent = 'No phone was shared. You can enter it manually.';
-          hint.style.display = 'block';
-        }
-      });
     }
 
     function closeCartModal() {
