@@ -147,7 +147,6 @@
       gap: 12px;
     }
 
-    /* Horizontal layout for card body: side-by-side image & info */
     .card-body-row {
       display: flex;
       gap: 12px;
@@ -163,19 +162,17 @@
       padding-top: 10px;
     }
 
-    /* Product Thumbnail Styling - On the side, larger, uncropped/contained */
+    /* Updated to object-fit: cover so image fills the box and eliminates side white leftovers */
     .item-thumbnail {
       width: 110px;
       height: 110px;
       min-width: 110px;
       border-radius: 8px;
-      object-fit: contain;
+      object-fit: cover;
       border: 1px solid var(--border-color);
       background-color: #ffffff;
-      padding: 4px;
     }
 
-    /* Placeholder Box for No Image - Matches side dimensions */
     .item-no-image {
       width: 110px;
       height: 110px;
@@ -565,7 +562,6 @@
     let activeSubCategory = 'All';
     let cart = {}; 
 
-    // Load Cart from localStorage if present
     const savedCart = localStorage.getItem('stockcare_cart');
     if (savedCart) {
       try {
@@ -575,7 +571,6 @@
       }
     }
 
-    // Instant Load from Cache
     const cachedProducts = localStorage.getItem('stockcare_catalog_cache');
     if (cachedProducts) {
       try {
@@ -590,7 +585,6 @@
       }
     }
 
-    // Network Fetch
     fetch(`${API_URL}/?action=getCatalog`)
       .then(res => {
         if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
@@ -889,7 +883,6 @@
         cart[itemId].qty = newQty;
       }
 
-      // Save cart state to localStorage
       localStorage.setItem('stockcare_cart', JSON.stringify(cart));
 
       updateTotals();
