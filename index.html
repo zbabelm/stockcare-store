@@ -1405,7 +1405,6 @@
         prepareCatalog(JSON.parse(cachedProducts));
         if (allProducts.length > 0) {
           buildCategoryChips(allProducts);
-          renderQuickPicks();
           renderCatalog();
           updateTotals();
         }
@@ -1596,6 +1595,197 @@
       document.getElementById('lightboxModal').classList.remove('active');
       document.body.classList.remove('modal-open');
       window.scrollTo(0, lightboxScrollY);
+    }
+
+    function renderCatalog() {
+      const catalogDiv = document.getElementById('catalog');
+      const suggestionBox = document.getElementById('suggestionBox');
+      const searchTerm = searchInput.value.toLowerCase().trim();
+
+      if (catalogObserver) {
+        catalogObserver.disconnect();
+        catalogObserver = null;
+      }
+      catalogLoadingMore = false;
+      renderedProductCount = 0;
+      currentRenderProducts = [];
+      suggestionBox.style.display = 'none';
+
+      // Filter only once per render. Exact search is fast; fuzzy search is used
+      // only when there are no exact matches.
+      let filtered = allProducts.filter(prod => {
+        const cat = (prod.Category || 'Uncategorized').trim();
+        if (activeCategory === 'All') return true;
+
+        if (activeCategory === 'Baby Food & Milk') {
+          return cat.toLowerCase() === 'milk and cereal foods';
+        }
+
+        if (isStandaloneCategory(activeCategory)) {
+          return isStandaloneCategory(cat) && cat.toLowerCase().includes(activeCategory.toLowerCase().split(' ')[0]);
+        }
+
+        if (activeCategory === 'Medicine') {
+          if (isStandaloneCategory(cat)) return false;
+          return activeSubCategory === 'All' || cat === activeSubCategory;
+        }
+        return true;
+      });
+
+      if (searchTerm) {
+        const exact = filtered.filter(prod => {
+          const name = (prod.Item_Name || '').toLowerCase();
+          const code = (prod.item_code || '').toLowerCase();
+          return name.includes(searchTerm) || code.includes(searchTerm);
+        });
+        filtered = exact;
+
+        // Fuzzy search is deliberately limited to misses so normal typing stays fast.
+        if (filtered.length === 0 && searchTerm.length >= 3) {
+          const matched = [];
+          const matchedNames = new Set();
+          const maxAllowedDist = searchTerm.length <= 4 ? 1 : 2;
+
+          for (const prod of categoryFilteredForSearch(filtered, allProducts, activeCategory, activeSubCategory)) {
+            const name = (prod.Item_Name || '').toLowerCase();
+            const words = name.split(/\s+/);
+            let hit = false;
+            for (const word of words) {
+              if (levenshteinDistance(searchTerm, word) <= maxAllowedDist) {
+                hit = true;
+                break;
+              }
+            }
+            if (hit) {
+              matched.push(prod);
+              matchedNames.add(prod.Item_Name);
+              if (matched.length >= 30) break;
+            }
+          }
+
+          if (matched.length) {
+            filtered = matched;
+            const names = Array.from(matchedNames).slice(0, 3).join(', ');
+            suggestionBox.innerHTML = `Showing similar items for <strong>"${escapeHtml(searchTerm)}"</strong>: <em>${escapeHtml(names)}${matchedNames.size > 3 ? '...' : ''}</em>`;
+            suggestionBox.style.display = 'block';
+          }
+        }
+      }
+
+      currentRenderProducts = filtered;
+
+      catalogDiv.innerHTML = '';
+
+      if (filtered.length === 0) {
+        catalogDiv.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <div class="empty-state-title">No Matching Items</div>
+            <div class="empty-state-desc">Try another product name, brand, item code, or check the spelling. You can also try a shorter search.</div>
+          </div>`;
+        return;
+      }
+
+      // Render the first small batch immediately, then add more only as needed.
+      renderNextCatalogBatch();
+    }
+
+    function categoryFilteredForSearch(source, products, category, subCategory) {
+      return products.filter(prod => {
+        const cat = (prod.Category || 'Uncategorized').trim();
+        if (category === 'All') return true;
+        if (category === 'Baby Food & Milk') return cat.toLowerCase() === 'milk and cereal foods';
+        if (isStandaloneCategory(category)) {
+          return isStandaloneCategory(cat) && cat.toLowerCase().includes(category.toLowerCase().split(' ')[0]);
+        }
+        if (category === 'Medicine') {
+          if (isStandaloneCategory(cat)) return false;
+          return subCategory === 'All' || cat === subCategory;
+        }
+        return true;
+      });
+    }
+
+    function renderNextCatalogBatch() {
+      if (catalogLoadingMore || renderedProductCount >= currentRenderProducts.length) return;
+      catalogLoadingMore = true;
+
+      const end = Math.min(renderedProductCount + RENDER_BATCH_SIZE, currentRenderProducts.length);
+      const fragment = document.createDocumentFragment();
+
+      for (let i = renderedProductCount; i < end; i++) {
+        const prod = currentRenderProducts[i];
+        const itemId = prod.item_ID;
+        const currentQty = cart[itemId] ? cart[itemId].qty : 0;
+        const maxQty = parseFloat(prod.Total_Qty_Bridge || 0);
+        const price = prod.Selling_Price ? parseFloat(prod.Selling_Price).toFixed(2) : '0.00';
+        const unitName = prod.Unit || prod.unit || '';
+        const expiry = formatExpiry(prod.Expiry_Date);
+        const expiringSoon = isExpiringSoon(prod.Expiry_Date);
+        const isLowStock = maxQty <= 5;
+        const stockBadgeClass = isLowStock ? 'badge-stock-low' : 'badge-stock-good';
+        const expBadgeClass = expiringSoon ? 'badge-exp-warn' : 'badge-exp-normal';
+        const imageUrl = prod.Image || prod.Image_URL || prod.Photo || prod.picture || '';
+        const safeTitle = escapeHtml(prod.Item_Name || 'Unnamed Item');
+
+        const imageHtml = imageUrl
+          ? `<div class="image-wrapper" onclick="openLightbox('${escapeHtml(imageUrl)}', '${safeTitle}')">
+               <img src="${escapeHtml(imageUrl)}" alt="${safeTitle}" loading="${i < 4 ? 'eager' : 'lazy'}" fetchpriority="${i < 4 ? 'high' : 'low'}" decoding="async" class="item-thumbnail" onerror="this.onerror=null; this.parentElement.replaceWith(Object.assign(document.createElement('div'), {className: 'item-no-image', innerText: 'No Image'}));">
+               <div class="zoom-badge">🔍 Tap</div>
+             </div>`
+          : `<div class="item-no-image">No Image</div>`;
+
+        const card = document.createElement('div');
+        card.className = `card ${isLowStock ? 'low-stock' : ''}`;
+        card.dataset.itemId = itemId;
+        card.innerHTML = `
+          <div class="card-top-section">
+            ${imageHtml}
+            <div class="card-info">
+              <div class="item-title" title="${safeTitle}">${safeTitle}</div>
+              <div class="item-meta">
+                <span class="badge ${stockBadgeClass}">${isLowStock ? 'Low stock' : 'In stock'}</span>
+                ${expiry ? `<span class="badge ${expBadgeClass}">Exp: ${expiry}</span>` : ''}
+              </div>
+            </div>
+          </div>
+          <div class="item-bottom-row">
+            <div class="price-unit-wrapper">
+              <div class="item-price-row">${price} ETB</div>
+              <div class="item-unit">${unitName ? `/ ${escapeHtml(unitName)}` : ''}</div>
+            </div>
+            <div id="controls-${itemId}">
+              ${currentQty > 0
+                ? `<div class="qty-controls">
+                     <button class="btn-qty" onclick="updateQty('${itemId}', -1, ${maxQty})">-</button>
+                     <span class="qty-count">${currentQty}</span>
+                     <button class="btn-qty" onclick="updateQty('${itemId}', 1, ${maxQty})">+</button>
+                   </div>`
+                : `<button class="btn-add" onclick="updateQty('${itemId}', 1, ${maxQty})">Add</button>`}
+            </div>
+          </div>`;
+        fragment.appendChild(card);
+      }
+
+      renderedProductCount = end;
+      catalogDiv.appendChild(fragment);
+      catalogLoadingMore = false;
+
+      if (renderedProductCount < currentRenderProducts.length) {
+        const sentinel = document.createElement('div');
+        sentinel.className = 'catalog-sentinel';
+        sentinel.dataset.catalogSentinel = 'true';
+        catalogDiv.appendChild(sentinel);
+
+        catalogObserver = new IntersectionObserver(entries => {
+          if (entries.some(entry => entry.isIntersecting)) {
+            const oldSentinel = sentinel;
+            oldSentinel.remove();
+            renderNextCatalogBatch();
+          }
+        }, { root: null, rootMargin: '500px 0px', threshold: 0 });
+        catalogObserver.observe(sentinel);
+      }
     }
 
     function updateQty(itemId, change, maxQty) {
