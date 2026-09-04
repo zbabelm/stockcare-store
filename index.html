@@ -973,8 +973,8 @@
       padding: 0 9px;
     }
 
-    /* Fixed header spacer: reserves only the exact header height, without an extra white gap. */
-    #suggestionBox, #catalog {
+    /* Reserve the fixed navigation height exactly once. */
+    #catalog {
       margin-top: var(--sticky-nav-height, 0px);
     }
 
@@ -982,6 +982,7 @@
       margin-bottom: 0;
     }
 
+    /* When search suggestions are visible, they occupy the space under the fixed nav. */
     #suggestionBox[style*="display: block"] + #catalog {
       margin-top: 0;
     }
@@ -1226,11 +1227,6 @@
     </div>
   </div>
 
-  <div class="quick-picks" id="quickPicks">
-    <div class="quick-picks-title">Recommended for you</div>
-    <div class="quick-picks-row" id="quickPicksRow"></div>
-  </div>
-
   <div id="suggestionBox" class="suggestion-box"></div>
 
   <div id="catalog">
@@ -1388,7 +1384,7 @@
     let activeSubCategory = 'All';
     let cart = {};
     const productById = new Map();
-    const RENDER_BATCH_SIZE = 150;
+    const RENDER_BATCH_SIZE = 70;
     let catalogLoadingMore = false;
     let currentRenderProducts = [];
     let renderedProductCount = 0;
@@ -1600,250 +1596,6 @@
       document.getElementById('lightboxModal').classList.remove('active');
       document.body.classList.remove('modal-open');
       window.scrollTo(0, lightboxScrollY);
-    }
-
-    function renderQuickPicks() {
-      const section = document.getElementById('quickPicks');
-      const row = document.getElementById('quickPicksRow');
-      if (!section || !row || !allProducts.length) return;
-
-      // Use the first few catalog items as recommendations without changing
-      // the actual catalog order or data.
-      const picks = allProducts.slice(0, 6);
-      row.innerHTML = picks.map(prod => {
-        const id = escapeHtml(prod.item_ID);
-        const name = escapeHtml(prod.Item_Name || 'Product');
-        const price = parseFloat(prod.Selling_Price || 0).toFixed(2);
-        return `<div class="quick-pick" onclick="focusProduct('${id}')">
-          <div class="quick-pick-name">${name}</div>
-          <div class="quick-pick-price">${price} ETB</div>
-        </div>`;
-      }).join('');
-      section.classList.add('active');
-    }
-
-    function focusProduct(itemId) {
-      const card = document.querySelector(`.card[data-item-id="${CSS.escape(itemId)}"]`);
-      if (card) {
-        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        card.classList.remove('product-added-flash');
-        void card.offsetWidth;
-        card.classList.add('product-added-flash');
-        return;
-      }
-      const prod = productById.get(itemId);
-      if (prod) {
-        searchInput.value = prod.Item_Name || '';
-        document.getElementById('searchClear').classList.add('active');
-        renderCatalog();
-        setTimeout(() => {
-          const newCard = document.querySelector(`.card[data-item-id="${CSS.escape(itemId)}"]`);
-          if (newCard) newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 80);
-      }
-    }
-
-    function renderCatalog() {
-      const catalogDiv = document.getElementById('catalog');
-      const suggestionBox = document.getElementById('suggestionBox');
-      const searchTerm = searchInput.value.trim().toLowerCase();
-      const normalizedSearchTerm = searchTerm;
-
-      suggestionBox.style.display = 'none';
-      if (catalogObserver) {
-        catalogObserver.disconnect();
-        catalogObserver = null;
-      }
-
-      let categoryFiltered = allProducts.filter(prod => {
-        const cat = (prod.Category || 'Uncategorized').trim();
-        if (activeCategory === 'All') return true;
-
-        if (activeCategory === 'Baby Food & Milk') {
-          return cat.toLowerCase() === 'milk and cereal foods';
-        }
-
-        if (isStandaloneCategory(activeCategory)) {
-          return isStandaloneCategory(cat) && cat.toLowerCase().includes(activeCategory.toLowerCase().split(' ')[0]);
-        }
-
-        if (activeCategory === 'Medicine') {
-          const isMed = !isStandaloneCategory(cat);
-          if (!isMed) return false;
-          if (activeSubCategory === 'All') return true;
-          return cat === activeSubCategory;
-        }
-        return true;
-      });
-
-      let finalFiltered = categoryFiltered;
-
-      if (normalizedSearchTerm.length > 0) {
-        finalFiltered = categoryFiltered.filter(prod => {
-          const name = (prod.Item_Name || '').toLowerCase();
-          const code = (prod.item_code || '').toLowerCase();
-          return name.includes(normalizedSearchTerm) || code.includes(normalizedSearchTerm);
-        });
-
-        if (finalFiltered.length === 0 && normalizedSearchTerm.length >= 3) {
-          const matchedSet = new Set();
-          const matchedNames = new Set();
-          categoryFiltered.forEach(prod => {
-            const name = (prod.Item_Name || '').toLowerCase();
-            name.split(/\s+/).forEach(word => {
-              const dist = levenshteinDistance(normalizedSearchTerm, word);
-              const maxAllowedDist = normalizedSearchTerm.length <= 4 ? 1 : 2;
-              if (dist <= maxAllowedDist) {
-                matchedSet.add(prod);
-                matchedNames.add(prod.Item_Name);
-              }
-            });
-          });
-
-          if (matchedSet.size > 0) {
-            finalFiltered = Array.from(matchedSet);
-            const suggestionsList = Array.from(matchedNames).slice(0, 3).join(', ');
-            suggestionBox.innerHTML = `Showing similar items for <strong>"${escapeHtml(searchTerm)}"</strong>: <em>${escapeHtml(suggestionsList)}${matchedNames.size > 3 ? '...' : ''}</em>`;
-            suggestionBox.style.display = 'block';
-          }
-        }
-      }
-
-      currentRenderProducts = finalFiltered;
-      renderedProductCount = 0;
-      catalogDiv.innerHTML = '';
-
-      if (currentRenderProducts.length === 0) {
-        catalogDiv.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-state-icon">🔍</div>
-            <div class="empty-state-title">No Matching Items</div>
-            <div class="empty-state-desc">Try another product name, brand, item code, or check the spelling. You can also try a shorter search.</div>
-          </div>`;
-        return;
-      }
-
-      appendNextCatalogBatch();
-    }
-
-    function appendNextCatalogBatch() {
-      if (catalogLoadingMore) return;
-      catalogLoadingMore = true;
-
-      const catalogDiv = document.getElementById('catalog');
-      const oldSentinel = document.getElementById('catalogSentinel');
-      if (oldSentinel) oldSentinel.remove();
-
-      const nextEnd = Math.min(renderedProductCount + RENDER_BATCH_SIZE, currentRenderProducts.length);
-      const html = [];
-
-      for (let i = renderedProductCount; i < nextEnd; i++) {
-        const prod = currentRenderProducts[i];
-        const itemId = prod.item_ID;
-        const currentQty = cart[itemId] ? cart[itemId].qty : 0;
-        const maxQty = parseFloat(prod.Total_Qty_Bridge || 0);
-        const price = prod.Selling_Price ? parseFloat(prod.Selling_Price).toFixed(2) : '0.00';
-        const unitName = prod.Unit || prod.unit || '';
-        const expiry = formatExpiry(prod.Expiry_Date);
-        const expiringSoon = isExpiringSoon(prod.Expiry_Date);
-        const isLowStock = maxQty <= 5;
-        const stockBadgeClass = isLowStock ? 'badge-stock-low' : 'badge-stock-good';
-        const stockLabel = isLowStock ? 'Low stock' : 'In stock';
-        const expBadgeClass = expiringSoon ? 'badge-exp-warn' : 'badge-exp-normal';
-        const imageUrl = prod.Image || prod.Image_URL || prod.Photo || prod.picture || '';
-        const safeTitle = escapeHtml(prod.Item_Name || 'Unnamed Item');
-        const imageHtml = imageUrl
-          ? `<div class="image-wrapper" onclick="openLightbox('${escapeHtml(imageUrl)}', '${safeTitle}')">
-               <img src="${escapeHtml(imageUrl)}" alt="${safeTitle}" loading="${i < 6 ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${i < 6 ? 'high' : 'low'}" class="item-thumbnail" onerror="this.onerror=null; this.parentElement.replaceWith(Object.assign(document.createElement('div'), {className: 'item-no-image', innerText: 'No Image'}));">
-               <div class="zoom-badge">🔍 Tap</div>
-             </div>`
-          : `<div class="item-no-image">No Image</div>`;
-
-        html.push(`
-          <div class="card ${isLowStock ? 'low-stock' : ''}" data-item-id="${escapeHtml(itemId)}">
-            <div class="card-top-section">
-              ${imageHtml}
-              <div class="card-info">
-                <div class="item-title" title="${safeTitle}">${safeTitle}</div>
-                <div class="item-meta">
-                  <span class="badge ${stockBadgeClass}">${stockLabel}</span>
-                  ${expiry ? `<span class="badge ${expBadgeClass}">Exp: ${expiry}</span>` : ''}
-                </div>
-              </div>
-            </div>
-            <div class="item-bottom-row">
-              <div class="price-unit-wrapper">
-                <div class="item-price-row">${price} ETB</div>
-                <div class="item-unit">${unitName ? `/ ${escapeHtml(unitName)}` : ''}</div>
-              </div>
-              <div id="controls-${escapeHtml(itemId)}">
-                ${currentQty > 0
-                  ? `<div class="qty-controls">
-                      <button class="btn-qty" onclick="updateQty('${escapeHtml(itemId)}', -1, ${maxQty})">-</button>
-                      <span class="qty-count">${currentQty}</span>
-                      <button class="btn-qty" onclick="updateQty('${escapeHtml(itemId)}', 1, ${maxQty})">+</button>
-                    </div>`
-                  : `<button class="btn-add" onclick="updateQty('${escapeHtml(itemId)}', 1, ${maxQty})">Add</button>`}
-              </div>
-            </div>
-          </div>`);
-      }
-
-      // One DOM insertion is much faster than creating/appending 100 cards individually.
-      const temp = document.createElement('div');
-      temp.innerHTML = html.join('');
-      const fragment = document.createDocumentFragment();
-      while (temp.firstChild) fragment.appendChild(temp.firstChild);
-      catalogDiv.appendChild(fragment);
-
-      renderedProductCount = nextEnd;
-
-      if (renderedProductCount < currentRenderProducts.length) {
-        const sentinel = document.createElement('div');
-        sentinel.className = 'catalog-sentinel';
-        sentinel.id = 'catalogSentinel';
-        catalogDiv.appendChild(sentinel);
-
-        if (catalogObserver) catalogObserver.disconnect();
-        catalogObserver = new IntersectionObserver(entries => {
-          if (entries[0].isIntersecting && !catalogLoadingMore) {
-            appendNextCatalogBatch();
-          }
-        }, { rootMargin: '400px 0px', threshold: 0 });
-        catalogObserver.observe(sentinel);
-      }
-
-      // Let the browser paint before another lazy-load batch can run.
-      requestAnimationFrame(() => { catalogLoadingMore = false; });
-    }
-
-    function isExpiringSoon(dateStr) {
-      if (!dateStr) return false;
-      try {
-        const parts = dateStr.split('/');
-        if (parts.length === 3) {
-          const expDate = new Date(parts[2], parts[0] - 1, parts[1]);
-          const now = new Date();
-          const diffDays = (expDate - now) / (1000 * 60 * 60 * 24);
-          return diffDays >= 0 && diffDays <= 30;
-        }
-      } catch (e) {
-        return false;
-      }
-      return false;
-    }
-
-    function formatExpiry(dateStr) {
-      if (!dateStr) return '';
-      try {
-        const parts = dateStr.split('/');
-        if (parts.length === 3) {
-          return `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
-        }
-        return dateStr;
-      } catch (e) {
-        return dateStr;
-      }
     }
 
     function updateQty(itemId, change, maxQty) {
