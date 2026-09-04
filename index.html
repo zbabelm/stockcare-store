@@ -220,11 +220,12 @@
       width: 100%;
     }
 
+    /* Requirement 1: Compact product card image container (height reduced to 75px) */
     .image-wrapper {
       position: relative;
       width: 100%;
-      height: 110px;
-      margin-bottom: 8px;
+      height: 75px;
+      margin-bottom: 6px;
       cursor: pointer;
     }
 
@@ -235,7 +236,7 @@
       object-fit: contain;
       border: 1px solid var(--border-color);
       background-color: #ffffff;
-      padding: 4px;
+      padding: 3px;
       transition: opacity 0.2s;
     }
 
@@ -245,12 +246,12 @@
 
     .zoom-badge {
       position: absolute;
-      bottom: 6px;
-      right: 6px;
+      bottom: 4px;
+      right: 4px;
       background: rgba(15, 23, 42, 0.75);
       color: white;
-      font-size: 9px;
-      padding: 2px 5px;
+      font-size: 8px;
+      padding: 2px 4px;
       border-radius: 4px;
       pointer-events: none;
       backdrop-filter: blur(2px);
@@ -258,7 +259,7 @@
 
     .item-no-image {
       width: 100%;
-      height: 110px;
+      height: 75px;
       border-radius: 8px;
       border: 1px solid var(--border-color);
       background-color: #f8fafc;
@@ -269,20 +270,7 @@
       font-size: 11px;
       font-weight: 600;
       color: var(--text-muted);
-      margin-bottom: 8px;
-    }
-
-    .item-code {
-      font-size: 10px;
-      color: var(--text-muted);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 2px;
-      width: 100%;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      margin-bottom: 6px;
     }
 
     .item-title {
@@ -495,7 +483,7 @@
       overflow-y: auto;
     }
 
-    /* Lightbox Modal Specifics */
+    /* Requirement 2 & 3: Lightbox Modal with maximized image and no internal code */
     .lightbox-modal {
       display: none;
       position: fixed;
@@ -504,7 +492,7 @@
       z-index: 40;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 16px;
     }
 
     .lightbox-modal.active {
@@ -514,8 +502,9 @@
     .lightbox-card {
       background: #1e293b;
       border-radius: 16px;
-      padding: 20px;
-      max-width: 90vw;
+      padding: 16px;
+      width: 95vw;
+      max-width: 500px;
       max-height: 90vh;
       display: flex;
       flex-direction: column;
@@ -525,12 +514,12 @@
     }
 
     .lightbox-image {
-      max-width: 100%;
-      max-height: 60vh;
+      width: 100%;
+      max-height: 75vh;
       object-fit: contain;
       border-radius: 8px;
       background: #fff;
-      padding: 8px;
+      padding: 6px;
     }
 
     .lightbox-title {
@@ -539,31 +528,25 @@
       font-weight: 600;
       margin-top: 12px;
       text-align: center;
-    }
-
-    .lightbox-code {
-      color: #94a3b8;
-      font-size: 11px;
-      margin-top: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      line-height: 1.3;
     }
 
     .lightbox-close {
       position: absolute;
       top: 12px;
       right: 12px;
-      background: rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.15);
       color: #fff;
       border: none;
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       font-size: 16px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
+      z-index: 5;
     }
 
     .modal-header {
@@ -716,7 +699,7 @@
     </div>
     <div class="search-wrapper">
       <span class="search-icon">🔍</span>
-      <input type="text" id="searchInput" class="search-bar" placeholder="Search products or item code...">
+      <input type="text" id="searchInput" class="search-bar" placeholder="Search products...">
     </div>
   </div>
 
@@ -745,13 +728,12 @@
     <button class="btn-checkout" id="btnBarCheckout" onclick="openCartModal()" disabled>View Cart</button>
   </div>
 
-  <!-- Image Lightbox Modal -->
+  <!-- Image Lightbox Modal (Cleaned: no code displayed) -->
   <div class="lightbox-modal" id="lightboxModal" onclick="closeLightbox()">
     <div class="lightbox-card" onclick="event.stopPropagation()">
       <button class="lightbox-close" onclick="closeLightbox()">✕</button>
       <img id="lightboxImg" class="lightbox-image" src="" alt="Product Full View">
       <div class="lightbox-title" id="lightboxTitle"></div>
-      <div class="lightbox-code" id="lightboxCode"></div>
     </div>
   </div>
 
@@ -991,11 +973,10 @@
       return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    function openLightbox(imageUrl, title, code) {
+    function openLightbox(imageUrl, title) {
       if (!imageUrl) return;
       document.getElementById('lightboxImg').src = imageUrl;
       document.getElementById('lightboxTitle').textContent = title || '';
-      document.getElementById('lightboxCode').textContent = code ? `Code: ${code}` : '';
       document.getElementById('lightboxModal').classList.add('active');
     }
 
@@ -1035,8 +1016,7 @@
 
       if (searchTerm.length > 0) {
         finalFiltered = categoryFiltered.filter(prod => {
-          return (prod.Item_Name || '').toLowerCase().includes(searchTerm) || 
-                 (prod.item_code || '').toLowerCase().includes(searchTerm);
+          return (prod.Item_Name || '').toLowerCase().includes(searchTerm);
         });
 
         if (finalFiltered.length === 0 && searchTerm.length >= 3) {
@@ -1089,10 +1069,9 @@
         const imageUrl = prod.Image || prod.Image_URL || prod.Photo || prod.picture || '';
 
         const safeTitle = escapeHtml(prod.Item_Name || 'Unnamed Item');
-        const safeCode = escapeHtml(prod.item_code || '');
 
         const imageHtml = imageUrl 
-          ? `<div class="image-wrapper" onclick="openLightbox('${escapeHtml(imageUrl)}', '${safeTitle}', '${safeCode}')">
+          ? `<div class="image-wrapper" onclick="openLightbox('${escapeHtml(imageUrl)}', '${safeTitle}')">
                <img src="${escapeHtml(imageUrl)}" alt="${safeTitle}" class="item-thumbnail" onerror="this.onerror=null; this.parentElement.replaceWith(Object.assign(document.createElement('div'), {className: 'item-no-image', innerText: 'No Image'}));">
                <div class="zoom-badge">🔍 Tap</div>
              </div>` 
@@ -1103,7 +1082,6 @@
         card.innerHTML = `
           <div class="card-top">
             ${imageHtml}
-            <div class="item-code">${safeCode}</div>
             <div class="item-title" title="${safeTitle}">${safeTitle}</div>
             
             <div class="item-price-row">
@@ -1167,199 +1145,187 @@
       if (!prod) return;
 
       if (!cart[itemId]) {
-        cart[itemId] = { product: prod, qty: 0 };
-      }
-
-      const newQty = cart[itemId].qty + change;
-
-      if (newQty > maxQty) {
-        if (tg && tg.showAlert) { tg.showAlert(`Only ${maxQty} items available in stock.`); } else { alert(`Only ${maxQty} items available in stock.`); }
-        return;
-      }
-
-      if (newQty <= 0) {
-        delete cart[itemId];
+        if (change > 0) {
+          cart[itemId] = {
+            id: itemId,
+            name: prod.Item_Name,
+            price: parseFloat(prod.Selling_Price || 0),
+            unit: prod.Unit || prod.unit || '',
+            image: prod.Image || prod.Image_URL || prod.Photo || prod.picture || '',
+            qty: 1,
+            max: maxQty
+          };
+        }
       } else {
-        cart[itemId].qty = newQty;
+        cart[itemId].qty += change;
+        if (cart[itemId].qty > maxQty) {
+          cart[itemId].qty = maxQty;
+        }
+        if (cart[itemId].qty <= 0) {
+          delete cart[itemId];
+        }
       }
 
       localStorage.setItem('stockcare_cart', JSON.stringify(cart));
-
-      updateTotals();
       renderCatalog();
-      if (document.getElementById('cartModal').classList.contains('active')) {
-        renderCartModalItems();
-      }
+      updateTotals();
     }
 
     function updateTotals() {
-      let totalItems = 0;
+      let totalCount = 0;
       let grandTotal = 0;
 
-      Object.values(cart).forEach(entry => {
-        totalItems += entry.qty;
-        const price = parseFloat(entry.product.Selling_Price || 0);
-        grandTotal += price * entry.qty;
+      Object.values(cart).forEach(item => {
+        totalCount += item.qty;
+        grandTotal += item.qty * item.price;
       });
 
-      document.getElementById('cartCount').textContent = totalItems;
-      document.getElementById('barTotal').textContent = `${grandTotal.toFixed(2)} ETB`;
-      
-      const btnCheckout = document.getElementById('btnBarCheckout');
-      btnCheckout.disabled = totalItems === 0;
-      btnCheckout.textContent = totalItems > 0 ? `View Cart (${totalItems})` : 'View Cart';
+      document.getElementById('cartCount').textContent = totalCount;
+      document.getElementById('barTotal').textContent = grandTotal.toFixed(2) + ' ETB';
+
+      const checkoutBtn = document.getElementById('btnBarCheckout');
+      if (totalCount > 0) {
+        checkoutBtn.removeAttribute('disabled');
+      } else {
+        checkoutBtn.setAttribute('disabled', 'true');
+      }
     }
 
     function openCartModal() {
-      if (Object.keys(cart).length === 0) return;
-      renderCartModalItems();
+      const container = document.getElementById('cartItemsContainer');
+      let itemsHtml = '';
+      let itemCount = 0;
+      let grandTotal = 0;
+
+      Object.values(cart).forEach(item => {
+        itemCount += item.qty;
+        const subtotal = item.qty * item.price;
+        grandTotal += subtotal;
+
+        const safeName = escapeHtml(item.name);
+        const imageHtml = item.image 
+          ? `<img src="${escapeHtml(item.image)}" alt="${safeName}" class="cart-item-thumbnail">`
+          : `<div class="cart-item-no-image">No Image</div>`;
+
+        itemsHtml += `
+          <div class="cart-item-row">
+            ${imageHtml}
+            <div class="cart-item-details-wrapper">
+              <div class="cart-item-name" title="${safeName}">${safeName}</div>
+              <div class="cart-item-details">${item.price.toFixed(2)} ETB ${item.unit ? '/ ' + escapeHtml(item.unit) : ''}</div>
+              <div class="cart-item-subtotal">Subtotal: ${subtotal.toFixed(2)} ETB</div>
+            </div>
+            <div class="cart-item-controls">
+              <div class="qty-controls" style="width: 75px;">
+                <button class="btn-qty" style="width:22px; height:22px; font-size:12px;" onclick="updateCartModalQty('${item.id}', -1)">-</button>
+                <span class="qty-count" style="font-size:12px;">${item.qty}</span>
+                <button class="btn-qty" style="width:22px; height:22px; font-size:12px;" onclick="updateCartModalQty('${item.id}', 1)">+</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      if (itemCount === 0) {
+        container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:20px;">Your cart is empty.</div>';
+      } else {
+        container.innerHTML = itemsHtml;
+      }
+
+      document.getElementById('modalItemCount').textContent = itemCount;
+      document.getElementById('modalGrandTotal').textContent = grandTotal.toFixed(2) + ' ETB';
       document.getElementById('cartModal').classList.add('active');
-      captureGPSLocation(false);
+    }
+
+    function updateCartModalQty(itemId, change) {
+      if (!cart[itemId]) return;
+      const prod = allProducts.find(p => p.item_ID === itemId);
+      const maxQty = prod ? parseFloat(prod.Total_Qty_Bridge || 999) : 999;
+
+      cart[itemId].qty += change;
+      if (cart[itemId].qty > maxQty) {
+        cart[itemId].qty = maxQty;
+      }
+      if (cart[itemId].qty <= 0) {
+        delete cart[itemId];
+      }
+
+      localStorage.setItem('stockcare_cart', JSON.stringify(cart));
+      renderCatalog();
+      updateTotals();
+      openCartModal();
     }
 
     function closeCartModal() {
       document.getElementById('cartModal').classList.remove('active');
     }
 
-    function renderCartModalItems() {
-      const container = document.getElementById('cartItemsContainer');
-      container.innerHTML = '';
-
-      if (Object.keys(cart).length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">Cart is empty.</div>';
-        document.getElementById('modalItemCount').textContent = '0';
-        document.getElementById('modalGrandTotal').textContent = '0.00 ETB';
-        closeCartModal();
+    function captureGPSLocation(isUserAction) {
+      const btn = document.getElementById('locationBtn');
+      if (!navigator.geolocation) {
+        if (isUserAction) alert("Geolocation is not supported by your browser");
         return;
       }
 
-      let grandTotal = 0;
-      let totalItemsCount = 0;
-
-      Object.values(cart).forEach(entry => {
-        const prod = entry.product;
-        const price = parseFloat(prod.Selling_Price || 0);
-        const subtotal = price * entry.qty;
-        const maxQty = parseFloat(prod.Total_Qty_Bridge || 0);
-        const unitName = prod.Unit || prod.unit || '';
-        const imageUrl = prod.Image || prod.Image_URL || prod.Photo || prod.picture || '';
-
-        grandTotal += subtotal;
-        totalItemsCount += entry.qty;
-
-        const imageHtml = imageUrl 
-          ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(prod.Item_Name)}" class="cart-item-thumbnail" onerror="this.onerror=null; this.replaceWith(Object.assign(document.createElement('div'), {className: 'cart-item-no-image', innerText: 'No Image'}));">` 
-          : `<div class="cart-item-no-image">No Image</div>`;
-
-        const row = document.createElement('div');
-        row.className = 'cart-item-row';
-        row.innerHTML = `
-          ${imageHtml}
-          <div class="cart-item-details-wrapper">
-            <div class="cart-item-name">[${prod.item_code || ''}] ${prod.Item_Name}</div>
-            <div class="cart-item-details">${price.toFixed(2)} ETB ${unitName ? `/ ${escapeHtml(unitName)}` : ''}</div>
-            <div class="cart-item-subtotal">Subtotal: ${subtotal.toFixed(2)} ETB</div>
-          </div>
-          <div class="cart-item-controls">
-            <div class="qty-controls">
-              <button class="btn-qty" onclick="updateQty('${prod.item_ID}', -1, ${maxQty})">-</button>
-              <span class="qty-count">${entry.qty}</span>
-              <button class="btn-qty" onclick="updateQty('${prod.item_ID}', 1, ${maxQty})">+</button>
-            </div>
-          </div>
-        `;
-        container.appendChild(row);
-      });
-
-      document.getElementById('modalItemCount').textContent = totalItemsCount;
-      document.getElementById('modalGrandTotal').textContent = `${grandTotal.toFixed(2)} ETB`;
-    }
-
-    function captureGPSLocation(isManualClick = false) {
-      const btn = document.getElementById('locationBtn');
-      const gpsField = document.getElementById('gpsCoordinates');
-      const addressField = document.getElementById('deliveryAddress');
-
-      if (gpsField.value && !isManualClick) return;
-
-      if ("geolocation" in navigator) {
-        if (isManualClick) btn.textContent = "⏳ Locating...";
-
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            const mapUrl = `https://maps.google.com/?q=${lat},${lng}`;
-            
-            gpsField.value = mapUrl;
-            if (!addressField.value) {
-              addressField.value = `GPS Pin: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-            }
-
-            btn.textContent = "✅ Location Attached!";
-            btn.style.background = "#d1fae5";
-            btn.style.color = "#065f46";
-          },
-          () => {
-            if (isManualClick) {
-              alert("Unable to detect GPS. Please enter your address manually.");
-              btn.textContent = "📍 Retry Location Detection";
-            }
-          },
-          { enableHighAccuracy: true, timeout: 8000 }
-        );
-      }
+      btn.textContent = "📍 Locating...";
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          const coordsStr = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+          document.getElementById('gpsCoordinates').value = coordsStr;
+          btn.textContent = `📍 GPS Attached (${coordsStr})`;
+          btn.style.backgroundColor = '#d1fae5';
+          btn.style.color = '#065f46';
+        },
+        (error) => {
+          if (isUserAction) alert("Unable to retrieve your location. Please check GPS permissions.");
+          btn.textContent = "📍 Attach GPS Location (Failed)";
+          btn.style.backgroundColor = '#fee2e2';
+          btn.style.color = '#991b1b';
+        },
+        { timeout: 10000, enableHighAccuracy: true }
+      );
     }
 
     function submitOrder() {
-      const btnSubmit = document.getElementById('btnSubmitOrder');
       const name = document.getElementById('customerName').value.trim();
       const phone = document.getElementById('customerPhone').value.trim();
       const address = document.getElementById('deliveryAddress').value.trim();
-      const gps = document.getElementById('gpsCoordinates').value;
+      const gps = document.getElementById('gpsCoordinates').value.trim();
       const notes = document.getElementById('orderNotes').value.trim();
 
       if (!name || !phone || !address) {
-        alert("Please complete Full Name, Phone Number, and Delivery Address.");
+        alert("Please fill in all required fields (Name, Phone, Delivery Address).");
         return;
       }
 
-      btnSubmit.disabled = true;
-      btnSubmit.textContent = "Submitting Order...";
-
-      const submitTimeout = setTimeout(() => {
-        if (btnSubmit.disabled) {
-          btnSubmit.disabled = false;
-          btnSubmit.textContent = "Place Order";
-          console.warn("Order request timed out on client side, resetting button.");
-        }
-      }, 8000);
-
-      const orderItems = Object.values(cart).map(entry => ({
-        item_ID: entry.product.item_ID,
-        item_code: entry.product.item_code || '',
-        item_name: entry.product.Item_Name,
-        unit: entry.product.Unit || entry.product.unit || '',
-        unit_price: parseFloat(entry.product.Selling_Price || 0),
-        quantity: entry.qty,
-        subtotal: parseFloat(entry.product.Selling_Price || 0) * entry.qty
+      const orderItems = Object.values(cart).map(item => ({
+        item_id: item.id,
+        item_name: item.name,
+        quantity: item.qty,
+        unit_price: item.price,
+        subtotal: item.qty * item.price
       }));
 
-      const grandTotal = orderItems.reduce((sum, item) => sum + item.subtotal, 0);
+      if (orderItems.length === 0) {
+        alert("Your cart is empty.");
+        return;
+      }
+
+      const submitBtn = document.getElementById('btnSubmitOrder');
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Submitting Order...";
 
       const payload = {
-        action: "create_order",
-        customer: {
-          name: name,
-          telegram_user_id: telegramUserId,
-          phone: phone,
-          address: address,
-          gps_location: gps || null,
-          notes: notes || ""
-        },
-        items: orderItems,
-        total_amount: grandTotal,
-        currency: "ETB"
+        action: 'submitOrder',
+        telegram_user_id: telegramUserId,
+        customer_name: name,
+        customer_phone: phone,
+        delivery_address: address,
+        gps_location: gps,
+        order_notes: notes,
+        items: orderItems
       };
 
       fetch(API_URL, {
@@ -1368,36 +1334,36 @@
         body: JSON.stringify(payload)
       })
       .then(res => res.json())
-      .then(data => {
-        clearTimeout(submitTimeout);
-        
-        cart = {};
-        localStorage.removeItem('stockcare_cart');
-        document.getElementById('orderNotes').value = '';
-        document.getElementById('gpsCoordinates').value = '';
-        document.getElementById('locationBtn').textContent = "📍 Attach GPS Location";
-        document.getElementById('locationBtn').style.background = "#e0e7ff";
-        document.getElementById('locationBtn').style.color = "#3730a3";
-        updateTotals();
-        renderCatalog();
+      .then(resData => {
+        if (resData && resData.status === 'success') {
+          document.getElementById('successAlert').style.display = 'block';
+          cart = {};
+          localStorage.removeItem('stockcare_cart');
+          updateTotals();
+          renderCatalog();
 
-        document.getElementById('successAlert').style.display = 'block';
-        btnSubmit.disabled = false;
-        btnSubmit.textContent = "Place Order";
-
-        setTimeout(() => {
-          document.getElementById('successAlert').style.display = 'none';
-          closeCartModal();
-        }, 2000);
+          setTimeout(() => {
+            closeCartModal();
+            document.getElementById('successAlert').style.display = 'none';
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Place Order";
+            if (tg) tg.close();
+          }, 2000);
+        } else {
+          throw new Error(resData.message || 'Submission failed');
+        }
       })
       .catch(err => {
-        clearTimeout(submitTimeout);
         console.error("Order Submit Error:", err);
-        alert("Failed to submit order. Please check your connection and try again.");
-        btnSubmit.disabled = false;
-        btnSubmit.textContent = "Place Order";
+        alert(`Failed to place order: ${err.message}`);
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Place Order";
       });
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      captureGPSLocation(false);
+    });
   </script>
 </body>
 </html>
