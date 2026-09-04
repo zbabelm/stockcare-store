@@ -304,31 +304,18 @@
       flex-direction: column;
     }
 
-    .item-code {
-      font-size: 10px;
-      color: var(--text-muted);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      width: 100%;
-    }
-
-    /* Improved Item Name Display supporting wrapped multi-line without strict clipping */
+    /* Increased height allowance and cleaner line-clamp for item name */
     .item-title {
       font-size: 13px;
       font-weight: 600;
       color: var(--text-main);
-      line-height: 1.25;
+      line-height: 1.3;
       display: -webkit-box;
-      -webkit-line-clamp: 3;
+      -webkit-line-clamp: 4;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      margin-bottom: 4px;
-      min-height: 32px;
+      margin-bottom: 6px;
+      min-height: 50px;
       width: 100%;
     }
 
@@ -431,7 +418,6 @@
       flex-shrink: 0;
     }
 
-    /* Slightly larger catalog quantity buttons for easy tapping */
     .btn-qty {
       background-color: #fff;
       border: 1px solid var(--border-color);
@@ -641,14 +627,6 @@
       text-align: center;
     }
 
-    .lightbox-code {
-      color: #94a3b8;
-      font-size: 12px;
-      margin-top: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
     .lightbox-close {
       position: absolute;
       top: 12px;
@@ -710,7 +688,7 @@
       cursor: pointer;
     }
 
-    /* Cart Item Layout separated to prevent accidental tap on remove button */
+    /* Cart Item Layout */
     .cart-item-row {
       display: flex;
       gap: 12px;
@@ -760,7 +738,6 @@
       gap: 8px;
     }
 
-    /* Fully visible cart item name with larger legible font */
     .cart-item-name {
       font-size: 14px;
       font-weight: 600;
@@ -769,7 +746,6 @@
       word-break: break-word;
     }
 
-    /* Distinctly placed remove button isolated from quantity controls */
     .btn-remove-item {
       background: #fee2e2;
       border: none;
@@ -808,7 +784,6 @@
       color: var(--primary);
     }
 
-    /* Larger cart quantity buttons for effortless adjustment */
     .cart-item-details-wrapper .qty-controls {
       background-color: #f1f5f9;
       padding: 3px;
@@ -857,7 +832,7 @@
     </div>
     <div class="search-wrapper">
       <span class="search-icon">🔍</span>
-      <input type="text" id="searchInput" class="search-bar" placeholder="Search products or item code...">
+      <input type="text" id="searchInput" class="search-bar" placeholder="Search products...">
       <button id="searchClear" class="search-clear" onclick="clearSearch()">✕</button>
     </div>
   </div>
@@ -896,7 +871,6 @@
       <button class="lightbox-close" onclick="closeLightbox()">✕</button>
       <img id="lightboxImg" class="lightbox-image" src="" alt="Product Full View">
       <div class="lightbox-title" id="lightboxTitle"></div>
-      <div class="lightbox-code" id="lightboxCode"></div>
     </div>
   </div>
 
@@ -1152,11 +1126,10 @@
       return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    function openLightbox(imageUrl, title, code) {
+    function openLightbox(imageUrl, title) {
       if (!imageUrl) return;
       document.getElementById('lightboxImg').src = imageUrl;
       document.getElementById('lightboxTitle').textContent = title || '';
-      document.getElementById('lightboxCode').textContent = code ? `Code: ${code}` : '';
       document.getElementById('lightboxModal').classList.add('active');
     }
 
@@ -1251,10 +1224,9 @@
         const imageUrl = prod.Image || prod.Image_URL || prod.Photo || prod.picture || '';
 
         const safeTitle = escapeHtml(prod.Item_Name || 'Unnamed Item');
-        const safeCode = escapeHtml(prod.item_code || '');
 
         const imageHtml = imageUrl 
-          ? `<div class="image-wrapper" onclick="openLightbox('${escapeHtml(imageUrl)}', '${safeTitle}', '${safeCode}')">
+          ? `<div class="image-wrapper" onclick="openLightbox('${escapeHtml(imageUrl)}', '${safeTitle}')">
                <img src="${escapeHtml(imageUrl)}" alt="${safeTitle}" loading="lazy" class="item-thumbnail" onerror="this.onerror=null; this.parentElement.replaceWith(Object.assign(document.createElement('div'), {className: 'item-no-image', innerText: 'No Image'}));">
                <div class="zoom-badge">🔍 Tap</div>
              </div>` 
@@ -1267,9 +1239,7 @@
           <div class="card-top-section">
             ${imageHtml}
             <div class="card-info">
-              <div class="item-code">${safeCode}</div>
               <div class="item-title" title="${safeTitle}">${safeTitle}</div>
-              
               <div class="item-meta">
                 <span class="badge ${stockBadgeClass}">Stock: ${maxQty}</span>
                 ${expiry ? `<span class="badge ${expBadgeClass}">Exp: ${expiry}</span>` : ''}
@@ -1485,7 +1455,7 @@
             ${imageHtml}
             <div class="cart-item-details-wrapper">
               <div class="cart-item-top">
-                <div class="cart-item-name">[${escapeHtml(prod.item_code || '')}] ${escapeHtml(prod.Item_Name)}</div>
+                <div class="cart-item-name">${escapeHtml(prod.Item_Name)}</div>
                 <button class="btn-remove-item" onclick="removeFromCart('${prod.item_ID}')" title="Remove item">✕</button>
               </div>
               <div class="cart-item-bottom">
