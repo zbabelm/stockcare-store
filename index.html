@@ -124,25 +124,19 @@
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
     }
 
-    /* Horizontal Scrolling Category Chips */
+    /* Fully Visible Wrapping Categories */
     .categories-container {
       display: flex;
-      gap: 8px;
+      flex-wrap: wrap;
+      gap: 6px;
       padding: 12px 16px;
       background-color: var(--card-bg);
       border-bottom: 1px solid var(--border-color);
       width: 100%;
-      overflow-x: auto;
-      white-space: nowrap;
-      scrollbar-width: none; /* Firefox */
-    }
-
-    .categories-container::-webkit-scrollbar {
-      display: none; /* Chrome/Safari */
     }
 
     .chip {
-      padding: 6px 14px;
+      padding: 6px 12px;
       border-radius: 16px;
       background-color: #f1f5f9;
       color: var(--text-muted);
@@ -151,7 +145,6 @@
       border: 1px solid var(--border-color);
       cursor: pointer;
       transition: all 0.2s;
-      flex-shrink: 0;
     }
 
     .chip.active {
@@ -219,7 +212,6 @@
       }
     }
 
-    /* Vertical Card Layout with Side Image */
     .card {
       background-color: var(--card-bg);
       border-radius: 12px;
@@ -325,17 +317,18 @@
       width: 100%;
     }
 
+    /* Improved Item Name Display supporting wrapped multi-line without strict clipping */
     .item-title {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       color: var(--text-main);
       line-height: 1.25;
       display: -webkit-box;
-      -webkit-line-clamp: 2;
+      -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
       margin-bottom: 4px;
-      height: 36px;
+      min-height: 32px;
       width: 100%;
     }
 
@@ -394,7 +387,7 @@
     }
 
     .item-price-row {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 700;
       color: var(--primary);
       white-space: nowrap;
@@ -414,8 +407,8 @@
       background-color: var(--primary);
       color: white;
       border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
+      padding: 8px 14px;
+      border-radius: 8px;
       font-weight: 600;
       font-size: 13px;
       cursor: pointer;
@@ -433,23 +426,24 @@
       align-items: center;
       justify-content: space-between;
       background-color: #f1f5f9;
-      padding: 2px;
-      border-radius: 6px;
+      padding: 3px;
+      border-radius: 8px;
       flex-shrink: 0;
     }
 
+    /* Slightly larger catalog quantity buttons for easy tapping */
     .btn-qty {
       background-color: #fff;
       border: 1px solid var(--border-color);
-      width: 26px;
-      height: 26px;
-      border-radius: 4px;
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
       font-weight: bold;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
+      font-size: 15px;
       color: var(--primary);
     }
 
@@ -457,7 +451,7 @@
       font-size: 13px;
       font-weight: 700;
       text-align: center;
-      padding: 0 8px;
+      padding: 0 10px;
     }
 
     /* Skeleton Loaders */
@@ -716,12 +710,13 @@
       cursor: pointer;
     }
 
+    /* Cart Item Layout separated to prevent accidental tap on remove button */
     .cart-item-row {
       display: flex;
-      align-items: stretch;
       gap: 12px;
-      padding: 10px 0;
+      padding: 12px 0;
       border-bottom: 1px solid var(--border-color);
+      align-items: flex-start;
     }
 
     .cart-item-thumbnail {
@@ -732,7 +727,6 @@
       object-fit: contain;
       border: 1px solid var(--border-color);
       background-color: #ffffff;
-      align-self: stretch;
     }
 
     .cart-item-no-image {
@@ -749,54 +743,88 @@
       font-size: 9px;
       font-weight: 600;
       color: var(--text-muted);
-      align-self: stretch;
     }
 
     .cart-item-details-wrapper {
       flex-grow: 1;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      gap: 6px;
       min-width: 0;
     }
 
+    .cart-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    /* Fully visible cart item name with larger legible font */
     .cart-item-name {
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 600;
-      line-height: 1.2;
-      margin-bottom: 2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      line-height: 1.3;
+      color: var(--text-main);
+      word-break: break-word;
+    }
+
+    /* Distinctly placed remove button isolated from quantity controls */
+    .btn-remove-item {
+      background: #fee2e2;
+      border: none;
+      color: #ef4444;
+      font-size: 13px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+
+    .btn-remove-item:hover {
+      background: #fecaca;
+    }
+
+    .cart-item-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
     }
 
     .cart-item-details {
-      font-size: 11px;
+      font-size: 12px;
       color: var(--text-muted);
     }
 
     .cart-item-subtotal {
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
       color: var(--primary);
     }
 
-    .cart-item-controls {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    /* Larger cart quantity buttons for effortless adjustment */
+    .cart-item-details-wrapper .qty-controls {
+      background-color: #f1f5f9;
+      padding: 3px;
+      border-radius: 8px;
     }
 
-    .btn-remove-item {
-      background: none;
-      border: none;
-      color: #ef4444;
+    .cart-item-details-wrapper .btn-qty {
+      width: 32px;
+      height: 32px;
       font-size: 16px;
-      cursor: pointer;
-      padding: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      border-radius: 6px;
+    }
+
+    .cart-item-details-wrapper .qty-count {
+      font-size: 14px;
+      padding: 0 12px;
     }
 
     #status-msg {
@@ -848,7 +876,6 @@
   <div id="suggestionBox" class="suggestion-box"></div>
 
   <div id="catalog">
-    <!-- Skeleton Loaders for Smooth Transition -->
     <div class="skeleton-card"><div class="skeleton-top"><div class="skeleton-img"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-line medium"></div></div></div></div>
     <div class="skeleton-card"><div class="skeleton-top"><div class="skeleton-img"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-line medium"></div></div></div></div>
     <div class="skeleton-card"><div class="skeleton-top"><div class="skeleton-img"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-line medium"></div></div></div></div>
@@ -885,7 +912,7 @@
         <button onclick="closeCartModal()" style="background:none; border:none; font-size:20px; cursor:pointer; color: var(--text-muted);">✕</button>
       </div>
 
-      <div id="cartItemsContainer" style="margin-bottom: 16px; max-height: 200px; overflow-y: auto;"></div>
+      <div id="cartItemsContainer" style="margin-bottom: 16px; max-height: 250px; overflow-y: auto;"></div>
 
       <div style="display:flex; justify-content:space-between; margin-bottom:16px; font-weight:700; font-size: 15px;">
         <span>Total (<span id="modalItemCount">0</span> unique items):</span>
@@ -1380,7 +1407,6 @@
       btnCheckout.disabled = totalItems === 0;
       btnCheckout.textContent = totalItems > 0 ? `View Cart (${totalItems})` : 'View Cart';
 
-      // Animate cart button bump
       if (totalItems > 0) {
         btnCheckout.classList.add('cart-bump');
         setTimeout(() => btnCheckout.classList.remove('cart-bump'), 200);
@@ -1432,7 +1458,7 @@
             const qtySpan = row.querySelector('.qty-count');
             const subtotalDiv = row.querySelector('.cart-item-subtotal');
             if (qtySpan) qtySpan.textContent = entry.qty;
-            if (subtotalDiv) subtotalDiv.textContent = `Subtotal: ${subtotal.toFixed(2)} ETB`;
+            if (subtotalDiv) subtotalDiv.textContent = `${subtotal.toFixed(2)} ETB`;
           }
         });
       } else {
@@ -1458,17 +1484,21 @@
           row.innerHTML = `
             ${imageHtml}
             <div class="cart-item-details-wrapper">
-              <div class="cart-item-name">[${escapeHtml(prod.item_code || '')}] ${escapeHtml(prod.Item_Name)}</div>
-              <div class="cart-item-details">${price.toFixed(2)} ETB ${unitName ? `/ ${escapeHtml(unitName)}` : ''}</div>
-              <div class="cart-item-subtotal">Subtotal: ${subtotal.toFixed(2)} ETB</div>
-            </div>
-            <div class="cart-item-controls">
-              <div class="qty-controls">
-                <button class="btn-qty" onclick="updateQty('${prod.item_ID}', -1, ${maxQty})">-</button>
-                <span class="qty-count">${entry.qty}</span>
-                <button class="btn-qty" onclick="updateQty('${prod.item_ID}', 1, ${maxQty})">+</button>
+              <div class="cart-item-top">
+                <div class="cart-item-name">[${escapeHtml(prod.item_code || '')}] ${escapeHtml(prod.Item_Name)}</div>
+                <button class="btn-remove-item" onclick="removeFromCart('${prod.item_ID}')" title="Remove item">✕</button>
               </div>
-              <button class="btn-remove-item" onclick="removeFromCart('${prod.item_ID}')" title="Remove item">✕</button>
+              <div class="cart-item-bottom">
+                <div class="cart-item-details">${price.toFixed(2)} ETB ${unitName ? `/ ${escapeHtml(unitName)}` : ''}</div>
+                <div class="qty-controls">
+                  <button class="btn-qty" onclick="updateQty('${prod.item_ID}', -1, ${maxQty})">-</button>
+                  <span class="qty-count">${entry.qty}</span>
+                  <button class="btn-qty" onclick="updateQty('${prod.item_ID}', 1, ${maxQty})">+</button>
+                </div>
+              </div>
+              <div style="font-size: 11px; color: var(--text-muted); text-align: right; margin-top: 2px;">
+                Subtotal: <span class="cart-item-subtotal">${subtotal.toFixed(2)} ETB</span>
+              </div>
             </div>
           `;
           container.appendChild(row);
