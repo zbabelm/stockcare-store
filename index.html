@@ -1255,7 +1255,7 @@
 
         const imageHtml = imageUrl 
           ? `<div class="image-wrapper" onclick="openLightbox('${escapeHtml(imageUrl)}', '${safeTitle}', '${safeCode}')">
-               <img src="${escapeHtml(imageUrl)}" alt="${safeTitle}" class="item-thumbnail" onerror="this.onerror=null; this.parentElement.replaceWith(Object.assign(document.createElement('div'), {className: 'item-no-image', innerText: 'No Image'}));">
+               <img src="${escapeHtml(imageUrl)}" alt="${safeTitle}" loading="lazy" class="item-thumbnail" onerror="this.onerror=null; this.parentElement.replaceWith(Object.assign(document.createElement('div'), {className: 'item-no-image', innerText: 'No Image'}));">
                <div class="zoom-badge">🔍 Tap</div>
              </div>` 
           : `<div class="item-no-image">No Image</div>`;
@@ -1475,7 +1475,7 @@
           grandTotal += subtotal;
 
           const imageHtml = imageUrl 
-            ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(prod.Item_Name)}" class="cart-item-thumbnail" onerror="this.onerror=null; this.replaceWith(Object.assign(document.createElement('div'), {className: 'cart-item-no-image', innerText: 'No Image'}));">` 
+            ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(prod.Item_Name)}" loading="lazy" class="cart-item-thumbnail" onerror="this.onerror=null; this.replaceWith(Object.assign(document.createElement('div'), {className: 'cart-item-no-image', innerText: 'No Image'}));">` 
             : `<div class="cart-item-no-image">No Image</div>`;
 
           const row = document.createElement('div');
