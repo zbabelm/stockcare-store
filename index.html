@@ -31,7 +31,10 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
-    body {
+    html, body {
+      width: 100%;
+      max-width: 100vw;
+      overflow-x: hidden;
       background-color: var(--bg-color);
       color: var(--text-main);
       padding-bottom: 100px;
@@ -40,11 +43,37 @@
     .header {
       position: sticky;
       top: 0;
-      background-color: rgba(255, 255, 255, 0.95);
+      background-color: rgba(255, 255, 255, 0.98);
       backdrop-filter: blur(8px);
       padding: 12px 16px;
       border-bottom: 1px solid var(--border-color);
       z-index: 10;
+      width: 100%;
+    }
+
+    .store-brand {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .store-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .store-subtitle {
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 600;
+      background: #d1fae5;
+      padding: 2px 8px;
+      border-radius: 12px;
     }
 
     .search-bar {
@@ -62,6 +91,7 @@
       position: relative;
       display: flex;
       align-items: center;
+      width: 100%;
     }
 
     .search-icon {
@@ -78,28 +108,25 @@
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
     }
 
+    /* Improved Categories: Wrapped Grid instead of hidden sideways scroll */
     .categories-container {
       display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding: 10px 16px;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 12px 16px;
       background-color: var(--card-bg);
       border-bottom: 1px solid var(--border-color);
-      scrollbar-width: none;
-    }
-    .categories-container::-webkit-scrollbar {
-      display: none;
+      width: 100%;
     }
 
     .chip {
-      white-space: nowrap;
-      padding: 6px 14px;
-      border-radius: 20px;
+      padding: 6px 12px;
+      border-radius: 16px;
       background-color: #f1f5f9;
       color: var(--text-muted);
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 500;
-      border: 1px solid transparent;
+      border: 1px solid var(--border-color);
       cursor: pointer;
       transition: all 0.2s;
     }
@@ -107,6 +134,7 @@
     .chip.active {
       background-color: var(--primary);
       color: #fff;
+      border-color: var(--primary);
       font-weight: 600;
       box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
     }
@@ -118,6 +146,7 @@
       align-items: center;
       gap: 8px;
       border-bottom: 1px solid var(--border-color);
+      width: 100%;
     }
 
     .sub-category-bar.active {
@@ -137,6 +166,7 @@
       font-size: 13px;
       background-color: white;
       outline: none;
+      flex-grow: 1;
     }
 
     .suggestion-box {
@@ -150,12 +180,14 @@
       display: none;
     }
 
-    /* Modern 2-Column Grid Layout for Catalog */
+    /* Modern 2-Column Grid Layout for Catalog with strict containment */
     #catalog {
       padding: 16px;
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 12px;
+      width: 100%;
+      max-width: 100%;
     }
 
     @media (min-width: 640px) {
@@ -174,6 +206,7 @@
       justify-content: space-between;
       box-shadow: 0 1px 3px rgba(0,0,0,0.02);
       transition: transform 0.15s ease, box-shadow 0.15s ease;
+      min-width: 0; /* prevents flex/grid blowout */
     }
 
     .card:hover {
@@ -186,11 +219,12 @@
       align-items: center;
       text-align: center;
       margin-bottom: 8px;
+      width: 100%;
     }
 
     .item-thumbnail {
       width: 100%;
-      height: 120px;
+      height: 110px;
       border-radius: 8px;
       object-fit: contain;
       border: 1px solid var(--border-color);
@@ -201,7 +235,7 @@
 
     .item-no-image {
       width: 100%;
-      height: 120px;
+      height: 110px;
       border-radius: 8px;
       border: 1px solid var(--border-color);
       background-color: #f8fafc;
@@ -222,6 +256,10 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 2px;
+      width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .item-title {
@@ -235,6 +273,7 @@
       overflow: hidden;
       height: 32px;
       margin-bottom: 6px;
+      width: 100%;
     }
 
     .item-price-row {
@@ -254,6 +293,10 @@
     .item-unit {
       font-size: 11px;
       color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60px;
     }
 
     .item-meta {
@@ -263,7 +306,7 @@
       justify-content: center;
       gap: 4px;
       flex-wrap: wrap;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
       width: 100%;
     }
 
@@ -357,7 +400,7 @@
       bottom: 0;
       left: 0;
       right: 0;
-      background-color: rgba(255, 255, 255, 0.95);
+      background-color: rgba(255, 255, 255, 0.98);
       backdrop-filter: blur(8px);
       border-top: 1px solid var(--border-color);
       padding: 12px 16px;
@@ -366,6 +409,7 @@
       align-items: center;
       box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
       z-index: 20;
+      width: 100%;
     }
 
     .cart-summary {
@@ -511,6 +555,7 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
+      min-width: 0;
     }
 
     .cart-item-name {
@@ -518,6 +563,9 @@
       font-weight: 600;
       line-height: 1.2;
       margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .cart-item-details {
@@ -568,6 +616,10 @@
 <body>
 
   <div class="header">
+    <div class="store-brand">
+      <div class="store-title">💊 StockCare Store</div>
+      <div class="store-subtitle">Instant Delivery</div>
+    </div>
     <div class="search-wrapper">
       <span class="search-icon">🔍</span>
       <input type="text" id="searchInput" class="search-bar" placeholder="Search products or item code...">
@@ -1153,7 +1205,6 @@
       btnSubmit.disabled = true;
       btnSubmit.textContent = "Submitting Order...";
 
-      // Safety timeout timer (resets button if server takes > 8 seconds)
       const submitTimeout = setTimeout(() => {
         if (btnSubmit.disabled) {
           btnSubmit.disabled = false;
