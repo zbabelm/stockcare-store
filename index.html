@@ -129,7 +129,7 @@
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
     }
 
-    /* Fully Visible Sticky Wrapping Categories */
+    /* Categories Container */
     .categories-container {
       display: flex;
       flex-wrap: wrap;
@@ -394,7 +394,7 @@
       text-overflow: ellipsis;
     }
 
-    /* Persistent Quick-Add Stepper Controls */
+    /* Quick-Add Stepper Controls */
     .qty-controls {
       display: flex;
       align-items: center;
@@ -434,7 +434,7 @@
       min-width: 24px;
     }
 
-    /* Empty State Illustrations */
+    /* Empty States */
     .empty-state {
       grid-column: 1 / -1;
       display: flex;
@@ -516,6 +516,7 @@
       100% { opacity: 1; }
     }
 
+    /* E-Commerce Floating Cart Bar */
     .bottom-bar {
       position: fixed;
       bottom: 0;
@@ -524,7 +525,7 @@
       background-color: rgba(255, 255, 255, 0.98);
       backdrop-filter: blur(8px);
       border-top: 1px solid var(--border-color);
-      padding: 12px 16px;
+      padding: 10px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -535,17 +536,51 @@
 
     .cart-summary {
       display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .cart-icon-wrapper {
+      position: relative;
+      background-color: #f1f5f9;
+      border: 1px solid var(--border-color);
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .cart-badge-counter {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background-color: var(--accent);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 10px;
+      border: 2px solid #ffffff;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .cart-totals-group {
+      display: flex;
       flex-direction: column;
     }
 
-    .cart-count {
+    .cart-label-sub {
       font-size: 11px;
       color: var(--text-muted);
       font-weight: 500;
     }
 
     .cart-total {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
       color: var(--text-main);
     }
@@ -554,12 +589,15 @@
       background-color: var(--accent);
       color: white;
       border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
+      padding: 10px 22px;
+      border-radius: 10px;
       font-weight: 600;
       font-size: 14px;
       cursor: pointer;
       transition: background 0.2s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .btn-checkout:hover {
@@ -578,10 +616,11 @@
 
     @keyframes bump {
       0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
+      50% { transform: scale(1.08); }
       100% { transform: scale(1); }
     }
 
+    /* Modals */
     .modal {
       display: none;
       position: fixed;
@@ -598,7 +637,7 @@
     .modal-content {
       background-color: var(--card-bg);
       width: 100%;
-      max-height: 85vh;
+      max-height: 88vh;
       border-radius: 16px 16px 0 0;
       padding: 20px;
       overflow-y: auto;
@@ -672,6 +711,28 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 16px;
+    }
+
+    .modal-actions-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-clear-cart {
+      background: #fee2e2;
+      color: #ef4444;
+      border: none;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-clear-cart:hover {
+      background: #fecaca;
     }
 
     .form-group {
@@ -875,12 +936,21 @@
     <div class="skeleton-card"><div class="skeleton-top"><div class="skeleton-img"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-line medium"></div></div></div></div>
   </div>
 
+  <!-- E-Commerce Bottom Cart Bar -->
   <div class="bottom-bar">
     <div class="cart-summary">
-      <span class="cart-count"><span id="cartCount">0</span> Items selected</span>
-      <span class="cart-total" id="barTotal">0.00 ETB</span>
+      <div class="cart-icon-wrapper" id="cartIconWrapper">
+        🛒
+        <span class="cart-badge-counter" id="cartBadgeCounter">0</span>
+      </div>
+      <div class="cart-totals-group">
+        <span class="cart-label-sub"><span id="cartItemTypesCount">0</span> items selected</span>
+        <span class="cart-total" id="barTotal">0.00 ETB</span>
+      </div>
     </div>
-    <button class="btn-checkout" id="btnBarCheckout" onclick="openCartModal()" disabled>View Cart</button>
+    <button class="btn-checkout" id="btnBarCheckout" onclick="openCartModal()" disabled>
+      View Cart ➔
+    </button>
   </div>
 
   <!-- Image Lightbox Modal -->
@@ -900,8 +970,11 @@
       </div>
 
       <div class="modal-header">
-        <h3>Order Confirmation</h3>
-        <button onclick="closeCartModal()" style="background:none; border:none; font-size:20px; cursor:pointer; color: var(--text-muted);">✕</button>
+        <h3 id="modalHeaderTitle">Order Confirmation</h3>
+        <div class="modal-actions-right">
+          <button class="btn-clear-cart" onclick="clearCart()">Clear Cart</button>
+          <button onclick="closeCartModal()" style="background:none; border:none; font-size:20px; cursor:pointer; color: var(--text-muted);">✕</button>
+        </div>
       </div>
 
       <div id="cartItemsContainer" style="margin-bottom: 16px; max-height: 250px; overflow-y: auto;"></div>
@@ -938,7 +1011,7 @@
         <input type="text" id="orderNotes" class="form-control" placeholder="Special delivery instructions">
       </div>
 
-      <button class="btn-checkout" id="btnSubmitOrder" style="width: 100%; margin-top: 8px; padding: 12px;" onclick="submitOrder()">
+      <button class="btn-checkout" id="btnSubmitOrder" style="width: 100%; margin-top: 8px; padding: 12px; justify-content: center;" onclick="submitOrder()">
         Place Order
       </button>
     </div>
@@ -1390,26 +1463,41 @@
       }
     }
 
+    function clearCart() {
+      if (Object.keys(cart).length === 0) return;
+      if (confirm("Are you sure you want to clear your cart?")) {
+        cart = {};
+        localStorage.removeItem('stockcare_cart');
+        updateTotals();
+        renderCatalog();
+        renderCartModalItems();
+      }
+    }
+
     function updateTotals() {
-      let totalItems = 0;
+      let totalUnits = 0;
+      let uniqueTypes = 0;
       let grandTotal = 0;
 
       Object.values(cart).forEach(entry => {
-        totalItems += entry.qty;
+        totalUnits += entry.qty;
+        uniqueTypes += 1;
         const price = parseFloat(entry.product.Selling_Price || 0);
         grandTotal += price * entry.qty;
       });
 
-      document.getElementById('cartCount').textContent = totalItems;
+      document.getElementById('cartBadgeCounter').textContent = totalUnits;
+      document.getElementById('cartItemTypesCount').textContent = uniqueTypes;
       document.getElementById('barTotal').textContent = `${grandTotal.toFixed(2)} ETB`;
       
       const btnCheckout = document.getElementById('btnBarCheckout');
-      btnCheckout.disabled = totalItems === 0;
-      btnCheckout.textContent = totalItems > 0 ? `View Cart (${totalItems})` : 'View Cart';
+      btnCheckout.disabled = totalUnits === 0;
+      btnCheckout.innerHTML = totalUnits > 0 ? `View Cart (${totalUnits}) ➔` : 'View Cart ➔';
 
-      if (totalItems > 0) {
-        btnCheckout.classList.add('cart-bump');
-        setTimeout(() => btnCheckout.classList.remove('cart-bump'), 200);
+      if (totalUnits > 0) {
+        const cartWrapper = document.getElementById('cartIconWrapper');
+        cartWrapper.classList.add('cart-bump');
+        setTimeout(() => cartWrapper.classList.remove('cart-bump'), 200);
       }
     }
 
