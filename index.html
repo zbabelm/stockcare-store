@@ -210,16 +210,17 @@
       flex-direction: column;
       align-items: center;
       text-align: center;
-      gap: 10px;
+      gap: 8px;
       margin-bottom: 10px;
       width: 100%;
     }
 
     .image-wrapper {
       position: relative;
-      width: 100%;
-      height: 110px;
+      width: 80px;
+      height: 80px;
       cursor: pointer;
+      margin-bottom: 2px;
     }
 
     .item-thumbnail {
@@ -239,20 +240,20 @@
 
     .zoom-badge {
       position: absolute;
-      bottom: 4px;
-      right: 4px;
+      bottom: 2px;
+      right: 2px;
       background: rgba(15, 23, 42, 0.75);
       color: white;
-      font-size: 9px;
-      padding: 2px 4px;
-      border-radius: 4px;
+      font-size: 8px;
+      padding: 1px 3px;
+      border-radius: 3px;
       pointer-events: none;
       backdrop-filter: blur(2px);
     }
 
     .item-no-image {
-      width: 100%;
-      height: 110px;
+      width: 80px;
+      height: 80px;
       border-radius: 8px;
       border: 1px solid var(--border-color);
       background-color: #f8fafc;
@@ -263,6 +264,7 @@
       font-size: 10px;
       font-weight: 600;
       color: var(--text-muted);
+      margin-bottom: 2px;
     }
 
     .item-details-flex {
@@ -1280,7 +1282,6 @@
       grandTotalSpan.textContent = total.toFixed(2) + ' ETB';
       modal.classList.add('active');
 
-      // Automatically trigger GPS location capture when cart opens
       captureGPSLocation(false);
     }
 
@@ -1304,7 +1305,7 @@
       localStorage.setItem('stockcare_cart', JSON.stringify(cart));
       renderCatalog();
       updateTotals();
-      openCartModal(); // Refresh modal view
+      openCartModal();
     }
 
     function removeFromCart(itemId) {
@@ -1312,7 +1313,7 @@
       localStorage.setItem('stockcare_cart', JSON.stringify(cart));
       renderCatalog();
       updateTotals();
-      openCartModal(); // Refresh modal view
+      openCartModal();
     }
 
     function captureGPSLocation(isManual = false) {
@@ -1320,7 +1321,6 @@
       const gpsInput = document.getElementById('gpsCoordinates');
       const submitBtn = document.getElementById('btnSubmitOrder');
 
-      // Check if already cached/fetched
       if (gpsInput.value && !isManual) {
         return;
       }
@@ -1411,7 +1411,14 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderData)
       })
-      .then(res => res.json())
+      .then(async res => {
+        const text = await res.text();
+        try {
+          return JSON.parse(text);
+        } catch (e) {
+          throw new Error("Server returned non-JSON response: " + text.substring(0, 100));
+        }
+      })
       .then(response => {
         if (response && response.status === 'success') {
           cart = {};
