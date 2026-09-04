@@ -222,13 +222,13 @@
     .card {
       background-color: var(--card-bg);
       border-radius: 12px;
-      padding: 10px;
+      padding: 9px;
       border: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
       align-items: stretch;
-      gap: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      gap: 7px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.025);
       transition: transform 0.15s ease, box-shadow 0.15s ease;
       min-width: 0;
       text-align: left;
@@ -314,7 +314,7 @@
     }
 
     .item-title {
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 600;
       color: var(--text-main);
       line-height: 1.3;
@@ -322,8 +322,8 @@
       -webkit-line-clamp: 4;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      margin-bottom: 6px;
-      min-height: 50px;
+      margin-bottom: 5px;
+      min-height: 46px;
       width: 100%;
     }
 
@@ -382,7 +382,7 @@
     }
 
     .item-price-row {
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 700;
       color: var(--primary);
       white-space: nowrap;
@@ -410,10 +410,11 @@
       font-size: 12px;
       font-weight: 700;
       cursor: pointer;
-      transition: background 0.15s, transform 0.1s;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+      box-shadow: 0 2px 5px rgba(37, 99, 235, 0.18);
     }
 
-    .btn-add:hover { background-color: var(--primary-hover); }
+    .btn-add:hover { background-color: var(--primary-hover); box-shadow: 0 4px 9px rgba(37, 99, 235, 0.22); }
     .btn-add:active { transform: scale(0.96); }
 
     /* Quick-Add Stepper Controls */
@@ -859,16 +860,16 @@
     /* Cart Item Layout */
     .cart-item-row {
       display: flex;
-      gap: 12px;
-      padding: 12px 0;
+      gap: 10px;
+      padding: 9px 0;
       border-bottom: 1px solid var(--border-color);
       align-items: flex-start;
     }
 
     .cart-item-thumbnail {
-      width: 56px;
-      min-width: 56px;
-      height: 75px;
+      width: 50px;
+      min-width: 50px;
+      height: 66px;
       border-radius: 6px;
       object-fit: contain;
       border: 1px solid var(--border-color);
@@ -876,9 +877,9 @@
     }
 
     .cart-item-no-image {
-      width: 56px;
-      min-width: 56px;
-      height: 75px;
+      width: 50px;
+      min-width: 50px;
+      height: 66px;
       border-radius: 6px;
       border: 1px solid var(--border-color);
       background-color: #f8fafc;
@@ -895,7 +896,7 @@
       flex-grow: 1;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
       min-width: 0;
     }
 
@@ -907,7 +908,7 @@
     }
 
     .cart-item-name {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       line-height: 1.3;
       color: var(--text-main);
@@ -944,12 +945,12 @@
     }
 
     .cart-item-details {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-muted);
     }
 
     .cart-item-subtotal {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       color: var(--primary);
     }
@@ -961,15 +962,15 @@
     }
 
     .cart-item-details-wrapper .btn-qty {
-      width: 32px;
-      height: 32px;
-      font-size: 16px;
+      width: 28px;
+      height: 28px;
+      font-size: 14px;
       border-radius: 6px;
     }
 
     .cart-item-details-wrapper .qty-count {
-      font-size: 14px;
-      padding: 0 12px;
+      font-size: 13px;
+      padding: 0 9px;
     }
 
     /* Fixed header spacer: reserves only the exact header height, without an extra white gap. */
@@ -1068,6 +1069,122 @@
       height: 1px;
     }
 
+    /* Trust + polished storefront touches */
+    .storefront-trust {
+      margin: 8px 16px 18px;
+      padding: 13px 14px;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .trust-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .trust-points {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 6px 12px;
+      color: var(--text-muted);
+      font-size: 10.5px;
+    }
+
+    .trust-point { white-space: nowrap; }
+
+    .quick-picks {
+      padding: 4px 16px 10px;
+      display: none;
+    }
+
+    .quick-picks.active { display: block; }
+
+    .quick-picks-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .quick-picks-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 3px;
+      scrollbar-width: none;
+    }
+
+    .quick-picks-row::-webkit-scrollbar { display: none; }
+
+    .quick-pick {
+      flex: 0 0 145px;
+      background: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 8px;
+      cursor: pointer;
+      text-align: left;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+
+    .quick-pick:active { transform: scale(.97); }
+    .quick-pick:hover { box-shadow: 0 3px 10px rgba(15,23,42,.08); }
+
+    .quick-pick-name {
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.25;
+      height: 28px;
+      overflow: hidden;
+      margin-bottom: 5px;
+    }
+
+    .quick-pick-price {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .order-success-screen {
+      text-align: center;
+      padding: 28px 12px 12px;
+    }
+
+    .order-success-icon {
+      width: 66px;
+      height: 66px;
+      margin: 0 auto 14px;
+      border-radius: 50%;
+      background: var(--stock-green-bg);
+      color: var(--stock-green-text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      animation: successPop .4s ease;
+    }
+
+    .order-success-title { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+    .order-success-desc { color: var(--text-muted); font-size: 13px; line-height: 1.5; }
+    .order-reference {
+      margin: 14px auto 18px;
+      padding: 10px 12px;
+      border: 1px dashed #94a3b8;
+      border-radius: 9px;
+      background: #f8fafc;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    @keyframes successPop {
+      0% { transform: scale(.6); opacity: .2; }
+      70% { transform: scale(1.08); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
     .alert-success {
       background-color: #d1fae5;
       color: #065f46;
@@ -1109,6 +1226,11 @@
     </div>
   </div>
 
+  <div class="quick-picks" id="quickPicks">
+    <div class="quick-picks-title">Recommended for you</div>
+    <div class="quick-picks-row" id="quickPicksRow"></div>
+  </div>
+
   <div id="suggestionBox" class="suggestion-box"></div>
 
   <div id="catalog">
@@ -1116,6 +1238,16 @@
     <div class="skeleton-card"><div class="skeleton-top"><div class="skeleton-img"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-line medium"></div></div></div></div>
     <div class="skeleton-card"><div class="skeleton-top"><div class="skeleton-img"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-line medium"></div></div></div></div>
     <div class="skeleton-card"><div class="skeleton-top"><div class="skeleton-img"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-line medium"></div></div></div></div>
+  </div>
+
+  <div class="storefront-trust">
+    <div class="trust-title">Why order from StockCare?</div>
+    <div class="trust-points">
+      <span class="trust-point">✓ Genuine Products</span>
+      <span class="trust-point">✓ Pharmacist Support</span>
+      <span class="trust-point">✓ Fast Delivery</span>
+      <span class="trust-point">✓ Easy Ordering</span>
+    </div>
   </div>
 
   <!-- E-Commerce Bottom Cart Bar -->
@@ -1147,10 +1279,7 @@
   <!-- Cart Modal -->
   <div class="modal" id="cartModal">
     <div class="modal-content">
-      <div id="successAlert" class="alert-success">
-        ✅ Order submitted successfully!
-      </div>
-
+      <div id="cartCheckoutContent">
       <div class="modal-header">
         <h3 id="modalHeaderTitle">Order Confirmation</h3>
         <div class="modal-actions-right">
@@ -1208,6 +1337,8 @@
       <button class="btn-checkout" id="btnSubmitOrder" style="width: 100%; margin-top: 8px; padding: 12px; justify-content: center;" onclick="submitOrder()">
         Place Order
       </button>
+      </div>
+      <div id="orderSuccessScreen" style="display:none;"></div>
     </div>
   </div>
 
@@ -1278,6 +1409,7 @@
         prepareCatalog(JSON.parse(cachedProducts));
         if (allProducts.length > 0) {
           buildCategoryChips(allProducts);
+          renderQuickPicks();
           renderCatalog();
           updateTotals();
         }
@@ -1470,6 +1602,47 @@
       window.scrollTo(0, lightboxScrollY);
     }
 
+    function renderQuickPicks() {
+      const section = document.getElementById('quickPicks');
+      const row = document.getElementById('quickPicksRow');
+      if (!section || !row || !allProducts.length) return;
+
+      // Use the first few catalog items as recommendations without changing
+      // the actual catalog order or data.
+      const picks = allProducts.slice(0, 6);
+      row.innerHTML = picks.map(prod => {
+        const id = escapeHtml(prod.item_ID);
+        const name = escapeHtml(prod.Item_Name || 'Product');
+        const price = parseFloat(prod.Selling_Price || 0).toFixed(2);
+        return `<div class="quick-pick" onclick="focusProduct('${id}')">
+          <div class="quick-pick-name">${name}</div>
+          <div class="quick-pick-price">${price} ETB</div>
+        </div>`;
+      }).join('');
+      section.classList.add('active');
+    }
+
+    function focusProduct(itemId) {
+      const card = document.querySelector(`.card[data-item-id="${CSS.escape(itemId)}"]`);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.remove('product-added-flash');
+        void card.offsetWidth;
+        card.classList.add('product-added-flash');
+        return;
+      }
+      const prod = productById.get(itemId);
+      if (prod) {
+        searchInput.value = prod.Item_Name || '';
+        document.getElementById('searchClear').classList.add('active');
+        renderCatalog();
+        setTimeout(() => {
+          const newCard = document.querySelector(`.card[data-item-id="${CSS.escape(itemId)}"]`);
+          if (newCard) newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 80);
+      }
+    }
+
     function renderCatalog() {
       const catalogDiv = document.getElementById('catalog');
       const suggestionBox = document.getElementById('suggestionBox');
@@ -1575,6 +1748,7 @@
         const expiringSoon = isExpiringSoon(prod.Expiry_Date);
         const isLowStock = maxQty <= 5;
         const stockBadgeClass = isLowStock ? 'badge-stock-low' : 'badge-stock-good';
+        const stockLabel = isLowStock ? 'Low stock' : 'In stock';
         const expBadgeClass = expiringSoon ? 'badge-exp-warn' : 'badge-exp-normal';
         const imageUrl = prod.Image || prod.Image_URL || prod.Photo || prod.picture || '';
         const safeTitle = escapeHtml(prod.Item_Name || 'Unnamed Item');
@@ -1592,7 +1766,7 @@
               <div class="card-info">
                 <div class="item-title" title="${safeTitle}">${safeTitle}</div>
                 <div class="item-meta">
-                  <span class="badge ${stockBadgeClass}">Stock: ${maxQty}</span>
+                  <span class="badge ${stockBadgeClass}">${stockLabel}</span>
                   ${expiry ? `<span class="badge ${expBadgeClass}">Exp: ${expiry}</span>` : ''}
                 </div>
               </div>
@@ -1785,6 +1959,10 @@
 
     function openCartModal() {
       if (Object.keys(cart).length === 0) return;
+      const checkout = document.getElementById('cartCheckoutContent');
+      const success = document.getElementById('orderSuccessScreen');
+      if (checkout) checkout.style.display = '';
+      if (success) { success.style.display = 'none'; success.innerHTML = ''; }
       renderCartModalItems(true);
       document.getElementById('cartModal').classList.add('active');
       document.body.classList.add('modal-open', 'cart-open');
@@ -1928,6 +2106,27 @@
       }
     }
 
+    function showOrderSuccess(orderRef = '') {
+      const checkout = document.getElementById('cartCheckoutContent');
+      const success = document.getElementById('orderSuccessScreen');
+      const refText = orderRef
+        ? `Order reference: <strong>${escapeHtml(String(orderRef))}</strong>`
+        : 'Your order has been received and will be confirmed shortly.';
+
+      checkout.style.display = 'none';
+      success.innerHTML = `
+        <div class="order-success-screen">
+          <div class="order-success-icon">✓</div>
+          <div class="order-success-title">Order Received!</div>
+          <div class="order-success-desc">Thank you. We’ll confirm your order and delivery details shortly.</div>
+          <div class="order-reference">${refText}</div>
+          <button class="btn-checkout" style="width:100%; justify-content:center; min-height:48px;" onclick="closeCartModal()">Continue Shopping</button>
+        </div>`;
+      success.style.display = 'block';
+      document.getElementById('cartModal').querySelector('.modal-content').scrollTop = 0;
+    }
+
+
     function submitOrder() {
       const btnSubmit = document.getElementById('btnSubmitOrder');
       const name = document.getElementById('customerName').value.trim();
@@ -1990,9 +2189,12 @@
         body: JSON.stringify(payload)
       })
       .then(res => res.json().catch(() => ({ status: 'success' })))
-      .then(data => {
+      .then(res => {
         clearTimeout(submitTimeout);
-        
+        if (!res.ok) throw new Error(`Server returned ${res.status}`);
+        return res.json().catch(() => ({}));
+      })
+      .then(data => {
         cart = {};
         localStorage.removeItem('stockcare_cart');
         document.getElementById('orderNotes').value = '';
@@ -2001,34 +2203,21 @@
         document.getElementById('locationBtn').textContent = "📍 Attach GPS Location";
         document.getElementById('locationBtn').style.background = "#e0e7ff";
         document.getElementById('locationBtn').style.color = "#3730a3";
+        const status = document.getElementById('locationStatus');
+        if (status) status.textContent = "GPS will be attached automatically when available.";
         updateTotals();
         renderCatalog();
 
-        document.getElementById('successAlert').style.display = 'block';
-        btnSubmit.disabled = false;
-        btnSubmit.textContent = "Place Order";
-
-        setTimeout(() => {
-          document.getElementById('successAlert').style.display = 'none';
-          closeCartModal();
-        }, 2000);
+        const orderRef = data.order_id || data.order_number || data.order_ref || data.reference || '';
+        showOrderSuccess(orderRef);
       })
       .catch(err => {
         clearTimeout(submitTimeout);
         console.error("Order Submit Error:", err);
-        cart = {};
-        localStorage.removeItem('stockcare_cart');
-        updateTotals();
-        renderCatalog();
-        
         btnSubmit.disabled = false;
         btnSubmit.textContent = "Place Order";
-        document.getElementById('successAlert').style.display = 'block';
-        setTimeout(() => {
-          document.getElementById('successAlert').style.display = 'none';
-          closeCartModal();
-        }, 2000);
-      });
+        alert("We couldn't submit your order. Please check your internet connection and try again. Your cart is still saved.");
+      })
     }
   </script>
 </body>
