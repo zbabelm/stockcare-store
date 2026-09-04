@@ -76,22 +76,22 @@
       border-radius: 12px;
     }
 
+    .search-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+
     .search-bar {
       width: 100%;
-      padding: 10px 14px 10px 38px;
+      padding: 10px 36px 10px 38px;
       border: 1px solid var(--border-color);
       border-radius: 10px;
       font-size: 14px;
       outline: none;
       background-color: #f1f5f9;
       transition: all 0.2s ease;
-    }
-
-    .search-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-      width: 100%;
     }
 
     .search-icon {
@@ -102,24 +102,47 @@
       pointer-events: none;
     }
 
+    .search-clear {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 14px;
+      cursor: pointer;
+      display: none;
+      padding: 4px;
+    }
+
+    .search-clear.active {
+      display: block;
+    }
+
     .search-bar:focus {
       border-color: var(--primary);
       background-color: #fff;
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
     }
 
+    /* Horizontal Scrolling Category Chips */
     .categories-container {
       display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
+      gap: 8px;
       padding: 12px 16px;
       background-color: var(--card-bg);
       border-bottom: 1px solid var(--border-color);
       width: 100%;
+      overflow-x: auto;
+      white-space: nowrap;
+      scrollbar-width: none; /* Firefox */
+    }
+
+    .categories-container::-webkit-scrollbar {
+      display: none; /* Chrome/Safari */
     }
 
     .chip {
-      padding: 6px 12px;
+      padding: 6px 14px;
       border-radius: 16px;
       background-color: #f1f5f9;
       color: var(--text-muted);
@@ -128,6 +151,7 @@
       border: 1px solid var(--border-color);
       cursor: pointer;
       transition: all 0.2s;
+      flex-shrink: 0;
     }
 
     .chip.active {
@@ -179,47 +203,59 @@
       display: none;
     }
 
-    /* Product Grid Layout */
+    /* 2-Column Grid Layout for Products */
     #catalog {
       padding: 12px 16px;
       display: grid;
-      grid-template-columns: repeat(1, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 10px;
       width: 100%;
       max-width: 100%;
     }
 
-    @media (min-width: 640px) {
+    @media (min-width: 768px) {
       #catalog {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
       }
     }
 
-    /* Horizontal Card Layout with Side Image (Tall Vertical Rectangle) */
+    /* Vertical Card Layout with Side Image */
     .card {
       background-color: var(--card-bg);
       border-radius: 12px;
       padding: 10px;
       border: 1px solid var(--border-color);
       display: flex;
-      flex-direction: row;
+      flex-direction: column;
       align-items: stretch;
-      gap: 10px;
+      gap: 8px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.02);
       transition: transform 0.15s ease, box-shadow 0.15s ease;
       min-width: 0;
       text-align: left;
+      position: relative;
+    }
+
+    .card.low-stock {
+      border-color: #fcd34d;
     }
 
     .card:hover {
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
 
+    .card-top-section {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      width: 100%;
+    }
+
     .image-wrapper {
       position: relative;
-      width: 75px;
-      min-width: 75px;
-      height: 105px;
+      width: 65px;
+      min-width: 65px;
+      height: 90px;
       cursor: pointer;
       flex-shrink: 0;
     }
@@ -245,17 +281,17 @@
       right: 2px;
       background: rgba(15, 23, 42, 0.75);
       color: white;
-      font-size: 8px;
-      padding: 1px 4px;
+      font-size: 7px;
+      padding: 1px 3px;
       border-radius: 3px;
       pointer-events: none;
       backdrop-filter: blur(2px);
     }
 
     .item-no-image {
-      width: 75px;
-      min-width: 75px;
-      height: 105px;
+      width: 65px;
+      min-width: 65px;
+      height: 90px;
       border-radius: 8px;
       border: 1px solid var(--border-color);
       background-color: #f8fafc;
@@ -263,19 +299,17 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 600;
       color: var(--text-muted);
       flex-shrink: 0;
     }
 
-    .card-body {
-      width: 100%;
+    .card-info {
+      flex-grow: 1;
+      min-width: 0;
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
-      justify-content: space-between;
-      min-width: 0;
     }
 
     .item-code {
@@ -289,11 +323,10 @@
       overflow: hidden;
       text-overflow: ellipsis;
       width: 100%;
-      text-align: left;
     }
 
     .item-title {
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 600;
       color: var(--text-main);
       line-height: 1.25;
@@ -302,8 +335,7 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
       margin-bottom: 4px;
-      height: 34px;
-      text-align: left;
+      height: 36px;
       width: 100%;
     }
 
@@ -312,7 +344,6 @@
       display: flex;
       align-items: center;
       gap: 4px;
-      margin-bottom: 4px;
       flex-wrap: wrap;
     }
 
@@ -350,7 +381,9 @@
       align-items: center;
       width: 100%;
       gap: 4px;
-      margin-top: auto;
+      margin-top: 4px;
+      border-top: 1px solid #f1f5f9;
+      padding-top: 6px;
     }
 
     .price-unit-wrapper {
@@ -361,7 +394,7 @@
     }
 
     .item-price-row {
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 700;
       color: var(--primary);
       white-space: nowrap;
@@ -384,7 +417,7 @@
       padding: 6px 12px;
       border-radius: 6px;
       font-weight: 600;
-      font-size: 12px;
+      font-size: 13px;
       cursor: pointer;
       transition: background 0.2s;
       white-space: nowrap;
@@ -408,23 +441,76 @@
     .btn-qty {
       background-color: #fff;
       border: 1px solid var(--border-color);
-      width: 24px;
-      height: 24px;
+      width: 26px;
+      height: 26px;
       border-radius: 4px;
       font-weight: bold;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 13px;
+      font-size: 14px;
       color: var(--primary);
     }
 
     .qty-count {
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
       text-align: center;
-      padding: 0 6px;
+      padding: 0 8px;
+    }
+
+    /* Skeleton Loaders */
+    .skeleton-card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      animation: pulse 1.5s infinite;
+    }
+
+    .skeleton-top {
+      display: flex;
+      gap: 8px;
+    }
+
+    .skeleton-img {
+      width: 65px;
+      height: 90px;
+      background-color: #e2e8f0;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    .skeleton-lines {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-top: 4px;
+    }
+
+    .skeleton-line {
+      height: 10px;
+      background-color: #e2e8f0;
+      border-radius: 4px;
+    }
+
+    .skeleton-line.short {
+      width: 50%;
+    }
+
+    .skeleton-line.medium {
+      width: 80%;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
     }
 
     .bottom-bar {
@@ -470,7 +556,7 @@
       font-weight: 600;
       font-size: 14px;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: background 0.2s, transform 0.1s;
     }
 
     .btn-checkout:hover {
@@ -480,6 +566,17 @@
     .btn-checkout:disabled {
       background-color: #cbd5e1;
       cursor: not-allowed;
+      transform: none;
+    }
+
+    .cart-bump {
+      animation: bump 0.2s ease;
+    }
+
+    @keyframes bump {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
     }
 
     .modal {
@@ -733,6 +830,7 @@
     <div class="search-wrapper">
       <span class="search-icon">🔍</span>
       <input type="text" id="searchInput" class="search-bar" placeholder="Search products or item code...">
+      <button id="searchClear" class="search-clear" onclick="clearSearch()">✕</button>
     </div>
   </div>
 
@@ -750,7 +848,11 @@
   <div id="suggestionBox" class="suggestion-box"></div>
 
   <div id="catalog">
-    <div id="status-msg">Loading items...</div>
+    <!-- Skeleton Loaders for Smooth Transition -->
+    <div class="skeleton-card"><div class="skeleton-top"><div class="skeleton-img"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-line medium"></div></div></div></div>
+    <div class="skeleton-card"><div class="skeleton-top"><div class="skeleton-img"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-line medium"></div></div></div></div>
+    <div class="skeleton-card"><div class="skeleton-top"><div class="skeleton-img"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-line medium"></div></div></div></div>
+    <div class="skeleton-card"><div class="skeleton-top"><div class="skeleton-img"></div><div class="skeleton-lines"><div class="skeleton-line short"></div><div class="skeleton-line"></div><div class="skeleton-line medium"></div></div></div></div>
   </div>
 
   <div class="bottom-bar">
@@ -978,9 +1080,25 @@
       renderCatalog();
     }
 
-    document.getElementById('searchInput').addEventListener('input', () => {
+    const searchInput = document.getElementById('searchInput');
+    const searchClear = document.getElementById('searchClear');
+
+    searchInput.addEventListener('input', () => {
+      const val = searchInput.value;
+      if (val.length > 0) {
+        searchClear.classList.add('active');
+      } else {
+        searchClear.classList.remove('active');
+      }
       renderCatalog();
     });
+
+    function clearSearch() {
+      searchInput.value = '';
+      searchClear.classList.remove('active');
+      renderCatalog();
+      searchInput.focus();
+    }
 
     function levenshteinDistance(a, b) {
       const matrix = [];
@@ -1022,7 +1140,7 @@
     function renderCatalog() {
       const catalogDiv = document.getElementById('catalog');
       const suggestionBox = document.getElementById('suggestionBox');
-      const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+      const searchTerm = searchInput.value.toLowerCase().trim();
 
       suggestionBox.style.display = 'none';
 
@@ -1099,7 +1217,8 @@
         const expiry = formatExpiry(prod.Expiry_Date);
         const expiringSoon = isExpiringSoon(prod.Expiry_Date);
 
-        const stockBadgeClass = maxQty <= 5 ? 'badge-stock-low' : 'badge-stock-good';
+        const isLowStock = maxQty <= 5;
+        const stockBadgeClass = isLowStock ? 'badge-stock-low' : 'badge-stock-good';
         const expBadgeClass = expiringSoon ? 'badge-exp-warn' : 'badge-exp-normal';
         
         const imageUrl = prod.Image || prod.Image_URL || prod.Photo || prod.picture || '';
@@ -1115,12 +1234,12 @@
           : `<div class="item-no-image">No Image</div>`;
 
         const card = document.createElement('div');
-        card.className = 'card';
+        card.className = `card ${isLowStock ? 'low-stock' : ''}`;
         card.dataset.itemId = itemId;
         card.innerHTML = `
-          ${imageHtml}
-          <div class="card-body">
-            <div>
+          <div class="card-top-section">
+            ${imageHtml}
+            <div class="card-info">
               <div class="item-code">${safeCode}</div>
               <div class="item-title" title="${safeTitle}">${safeTitle}</div>
               
@@ -1129,22 +1248,22 @@
                 ${expiry ? `<span class="badge ${expBadgeClass}">Exp: ${expiry}</span>` : ''}
               </div>
             </div>
+          </div>
 
-            <div class="item-bottom-row">
-              <div class="price-unit-wrapper">
-                <div class="item-price-row">${price} ETB</div>
-                <div class="item-unit">${unitName ? `/ ${escapeHtml(unitName)}` : ''}</div>
-              </div>
-              <div id="controls-${itemId}" class="item-controls-slot">
-                ${currentQty === 0 
-                  ? `<button class="btn-add" onclick="updateQty('${itemId}', 1, ${maxQty})">+ Add</button>`
-                  : `<div class="qty-controls">
-                      <button class="btn-qty" onclick="updateQty('${itemId}', -1, ${maxQty})">-</button>
-                      <span class="qty-count">${currentQty}</span>
-                      <button class="btn-qty" onclick="updateQty('${itemId}', 1, ${maxQty})">+</button>
-                     </div>`
-                }
-              </div>
+          <div class="item-bottom-row">
+            <div class="price-unit-wrapper">
+              <div class="item-price-row">${price} ETB</div>
+              <div class="item-unit">${unitName ? `/ ${escapeHtml(unitName)}` : ''}</div>
+            </div>
+            <div id="controls-${itemId}" class="item-controls-slot">
+              ${currentQty === 0 
+                ? `<button class="btn-add" onclick="updateQty('${itemId}', 1, ${maxQty})">+ Add</button>`
+                : `<div class="qty-controls">
+                    <button class="btn-qty" onclick="updateQty('${itemId}', -1, ${maxQty})">-</button>
+                    <span class="qty-count">${currentQty}</span>
+                    <button class="btn-qty" onclick="updateQty('${itemId}', 1, ${maxQty})">+</button>
+                   </div>`
+              }
             </div>
           </div>
         `;
@@ -1260,6 +1379,12 @@
       const btnCheckout = document.getElementById('btnBarCheckout');
       btnCheckout.disabled = totalItems === 0;
       btnCheckout.textContent = totalItems > 0 ? `View Cart (${totalItems})` : 'View Cart';
+
+      // Animate cart button bump
+      if (totalItems > 0) {
+        btnCheckout.classList.add('cart-bump');
+        setTimeout(() => btnCheckout.classList.remove('cart-bump'), 200);
+      }
     }
 
     function openCartModal() {
