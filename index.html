@@ -162,6 +162,18 @@
       box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
     }
 
+    .chip-more {
+      background-color: #e8eefc;
+      color: var(--primary);
+      border-color: #c7d7f8;
+      font-weight: 700;
+    }
+
+    .more-categories {
+      display: contents;
+    }
+
+
     .sub-category-bar {
       padding: 8px 16px;
       background-color: #edf2f7;
@@ -254,9 +266,9 @@
 
     .image-wrapper {
       position: relative;
-      width: 65px;
-      min-width: 65px;
-      height: 98px;
+      width: 68px;
+      min-width: 68px;
+      height: 108px;
       cursor: pointer;
       flex-shrink: 0;
     }
@@ -290,9 +302,9 @@
     }
 
     .item-no-image {
-      width: 65px;
-      min-width: 65px;
-      height: 90px;
+      width: 68px;
+      min-width: 68px;
+      height: 100px;
       border-radius: 8px;
       border: 1px solid var(--border-color);
       background-color: #f8fafc;
@@ -431,8 +443,8 @@
     .btn-qty {
       background-color: #fff;
       border: 1px solid var(--border-color);
-      width: 28px;
-      height: 28px;
+      width: 24px;
+      height: 24px;
       border-radius: 6px;
       font-weight: bold;
       cursor: pointer;
@@ -880,16 +892,16 @@
     /* Cart Item Layout */
     .cart-item-row {
       display: flex;
-      gap: 8px;
-      padding: 8px 0;
+      gap: 6px;
+      padding: 5px 0;
       border-bottom: 1px solid var(--border-color);
       align-items: flex-start;
     }
 
     .cart-item-thumbnail {
-      width: 50px;
-      min-width: 50px;
-      height: 66px;
+      width: 42px;
+      min-width: 42px;
+      height: 54px;
       border-radius: 6px;
       object-fit: contain;
       border: 1px solid var(--border-color);
@@ -928,7 +940,7 @@
     }
 
     .cart-item-name {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       line-height: 1.2;
       color: var(--text-main);
@@ -939,8 +951,8 @@
       background: #fee2e2;
       border: none;
       color: #ef4444;
-      font-size: 13px;
-      width: 28px;
+      font-size: 12px;
+      width: 24px;
       height: 28px;
       border-radius: 50%;
       cursor: pointer;
@@ -982,15 +994,15 @@
     }
 
     .cart-item-details-wrapper .btn-qty {
-      width: 29px;
-      height: 29px;
-      font-size: 15px;
+      width: 25px;
+      height: 25px;
+      font-size: 13px;
       border-radius: 6px;
     }
 
     .cart-item-details-wrapper .qty-count {
-      font-size: 13px;
-      padding: 0 9px;
+      font-size: 12px;
+      padding: 0 6px;
     }
 
     /* Fixed header spacer: reserves only the exact header height, without an extra white gap. */
@@ -1376,18 +1388,33 @@
       const container = document.getElementById('categoryContainer');
       const presentCats = new Set(products.map(p => (p.Category || '').trim()));
       
-      const categoryList = ['All', 'Baby Care', 'Baby Food & Milk', 'Cosmetics', 'Medical Devices & Supplies'];
+      const allMainCategories = ['Baby Care', 'Baby Food & Milk', 'Cosmetics', 'Medical Devices & Supplies'];
 
       const hasMedicine = Array.from(presentCats).some(cat => !isStandaloneCategory(cat));
-      if (hasMedicine && !categoryList.includes('Medicine')) {
-        categoryList.push('Medicine');
-      }
+      if (hasMedicine) allMainCategories.push('Medicine');
 
-      container.innerHTML = categoryList.map(cat => `
-        <button class="chip ${cat === activeCategory ? 'active' : ''}" onclick="filterCategory('${cat}', this)">${cat}</button>
-      `).join('');
+      // Keep the category row compact: show the first 3 main categories, then put the rest behind More.
+      // Medicine stays a main category; its existing medicine-type selector remains unchanged.
+      const uniqueCategories = [...new Set(allMainCategories)];
+      const visibleCategories = uniqueCategories.slice(0, 3);
+      const hiddenCategories = uniqueCategories.slice(3);
+      const renderChip = cat => `<button class="chip category-main-chip ${cat === activeCategory ? 'active' : ''}" onclick="filterCategory('${cat}', this)">${cat}</button>`;
+
+      container.innerHTML = `<button class="chip ${activeCategory === 'All' ? 'active' : ''}" onclick="filterCategory('All', this)">All</button>
+        ${visibleCategories.map(renderChip).join('')}
+        ${hiddenCategories.length ? `<button class="chip chip-more" id="moreCategoriesBtn" onclick="toggleMoreCategories()">More ▾</button>` : ''}
+        <span class="more-categories" id="moreCategories" style="display:none">${hiddenCategories.map(renderChip).join('')}</span>`;
 
       buildMedicineSubCategories(products);
+    }
+
+    function toggleMoreCategories() {
+      const more = document.getElementById('moreCategories');
+      const btn = document.getElementById('moreCategoriesBtn');
+      if (!more || !btn) return;
+      const isOpen = more.style.display !== 'none';
+      more.style.display = isOpen ? 'none' : 'contents';
+      btn.textContent = isOpen ? 'More ▾' : 'Less ▴';
     }
 
     function buildMedicineSubCategories(products) {
@@ -1895,7 +1922,7 @@
                   <button class="btn-qty" onclick="updateQty('${prod.item_ID}', 1, ${maxQty})">+</button>
                 </div>
               </div>
-              <div style="font-size: 11px; color: var(--text-muted); text-align: right; margin-top: 2px;">
+              <div style="font-size: 10px; color: var(--text-muted); text-align: right; margin-top: 1px;">
                 Subtotal: <span class="cart-item-subtotal">${subtotal.toFixed(2)} ETB</span>
               </div>
             </div>
