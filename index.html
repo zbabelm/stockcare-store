@@ -54,20 +54,22 @@
     }
 
     .header {
-      padding: 12px 16px 8px 16px;
+      padding: 10px 16px 9px 16px;
       border-bottom: 1px solid var(--border-color);
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
     }
 
     .store-brand {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .store-title {
-      font-size: 16px;
-      font-weight: 700;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
       color: var(--text-main);
       display: flex;
       align-items: center;
@@ -75,12 +77,14 @@
     }
 
     .store-subtitle {
-      font-size: 11px;
-      color: var(--accent);
-      font-weight: 600;
-      background: #d1fae5;
-      padding: 2px 8px;
-      border-radius: 12px;
+      font-size: 10px;
+      color: var(--accent-hover);
+      font-weight: 700;
+      background: #ecfdf5;
+      border: 1px solid #bbf7d0;
+      padding: 4px 9px;
+      border-radius: 999px;
+      white-space: nowrap;
     }
 
     .search-wrapper {
@@ -92,13 +96,14 @@
 
     .search-bar {
       width: 100%;
-      padding: 10px 36px 10px 38px;
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
+      padding: 11px 36px 11px 38px;
+      border: 1px solid #dbe3ee;
+      border-radius: 12px;
       font-size: 14px;
       outline: none;
       background-color: #f1f5f9;
       transition: all 0.2s ease;
+      box-shadow: inset 0 1px 2px rgba(15,23,42,0.03);
     }
 
     .search-icon {
@@ -136,10 +141,37 @@
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      padding: 10px 16px;
+      padding: 9px 16px 10px;
       background-color: var(--card-bg);
       border-bottom: 1px solid var(--border-color);
       width: 100%;
+    }
+
+    .category-more {
+      padding: 6px 12px;
+      border-radius: 16px;
+      background: #eef2ff;
+      color: #4338ca;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid #c7d2fe;
+      cursor: pointer;
+    }
+
+    .category-more.active {
+      background: #e0e7ff;
+    }
+
+    .category-extra {
+      display: none;
+      width: 100%;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding-top: 1px;
+    }
+
+    .category-extra.open {
+      display: flex;
     }
 
     .chip {
@@ -161,18 +193,6 @@
       font-weight: 600;
       box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
     }
-
-    .chip-more {
-      background-color: #e8eefc;
-      color: var(--primary);
-      border-color: #c7d7f8;
-      font-weight: 700;
-    }
-
-    .more-categories {
-      display: contents;
-    }
-
 
     .sub-category-bar {
       padding: 8px 16px;
@@ -302,9 +322,9 @@
     }
 
     .item-no-image {
-      width: 68px;
-      min-width: 68px;
-      height: 100px;
+      width: 65px;
+      min-width: 65px;
+      height: 90px;
       border-radius: 8px;
       border: 1px solid var(--border-color);
       background-color: #f8fafc;
@@ -443,8 +463,8 @@
     .btn-qty {
       background-color: #fff;
       border: 1px solid var(--border-color);
-      width: 24px;
-      height: 24px;
+      width: 28px;
+      height: 28px;
       border-radius: 6px;
       font-weight: bold;
       cursor: pointer;
@@ -896,6 +916,7 @@
       padding: 5px 0;
       border-bottom: 1px solid var(--border-color);
       align-items: flex-start;
+      position: relative;
     }
 
     .cart-item-thumbnail {
@@ -928,7 +949,7 @@
       flex-grow: 1;
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 1px;
       min-width: 0;
     }
 
@@ -936,11 +957,12 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 8px;
+      gap: 5px;
+      padding-right: 30px;
     }
 
     .cart-item-name {
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
       line-height: 1.2;
       color: var(--text-main);
@@ -948,12 +970,15 @@
     }
 
     .btn-remove-item {
+      position: absolute;
+      left: 0;
+      top: 1px;
       background: #fee2e2;
       border: none;
       color: #ef4444;
-      font-size: 12px;
-      width: 24px;
-      height: 28px;
+      font-size: 11px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
       cursor: pointer;
       display: flex;
@@ -971,18 +996,18 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 0;
+      margin-top: -1px;
       content-visibility: auto;
       contain-intrinsic-size: 150px;
     }
 
     .cart-item-details {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-muted);
     }
 
     .cart-item-subtotal {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       color: var(--primary);
     }
@@ -994,8 +1019,8 @@
     }
 
     .cart-item-details-wrapper .btn-qty {
-      width: 25px;
-      height: 25px;
+      width: 24px;
+      height: 24px;
       font-size: 13px;
       border-radius: 6px;
     }
@@ -1387,34 +1412,40 @@
     function buildCategoryChips(products) {
       const container = document.getElementById('categoryContainer');
       const presentCats = new Set(products.map(p => (p.Category || '').trim()));
-      
-      const allMainCategories = ['Baby Care', 'Baby Food & Milk', 'Cosmetics', 'Medical Devices & Supplies'];
+
+      // Keep the most useful main categories visible. The rest stay under More.
+      const allMainCategories = ['All', 'Medicine', 'Cosmetics', 'Baby Care', 'Baby Food & Milk', 'Milk and Cereal foods', 'Medical Devices & Supplies'];
+      const visibleCategories = ['All', 'Medicine', 'Cosmetics'];
+      const extraCategories = ['Baby Care', 'Baby Food & Milk', 'Milk and Cereal foods', 'Medical Devices & Supplies'];
 
       const hasMedicine = Array.from(presentCats).some(cat => !isStandaloneCategory(cat));
-      if (hasMedicine) allMainCategories.push('Medicine');
+      const visible = visibleCategories.filter(cat => cat === 'All' || (cat === 'Medicine' ? hasMedicine : Array.from(presentCats).some(p => isStandaloneCategory(p) && p.toLowerCase().includes(cat.toLowerCase().split(' ')[0]))));
+      const extras = extraCategories.filter(cat => Array.from(presentCats).some(p => {
+        const lower = p.toLowerCase();
+        if (cat === 'Baby Food & Milk') return lower === 'milk and cereal foods';
+        return isStandaloneCategory(p) && lower.includes(cat.toLowerCase().split(' ')[0]);
+      }));
 
-      // Keep the category row compact: show the first 3 main categories, then put the rest behind More.
-      // Medicine stays a main category; its existing medicine-type selector remains unchanged.
-      const uniqueCategories = [...new Set(allMainCategories)];
-      const visibleCategories = uniqueCategories.slice(0, 3);
-      const hiddenCategories = uniqueCategories.slice(3);
-      const renderChip = cat => `<button class="chip category-main-chip ${cat === activeCategory ? 'active' : ''}" onclick="filterCategory('${cat}', this)">${cat}</button>`;
+      container.innerHTML = visible.map(cat => `
+        <button class="chip ${cat === activeCategory ? 'active' : ''}" onclick="filterCategory('${cat}', this)">${cat}</button>
+      `).join('');
 
-      container.innerHTML = `<button class="chip ${activeCategory === 'All' ? 'active' : ''}" onclick="filterCategory('All', this)">All</button>
-        ${visibleCategories.map(renderChip).join('')}
-        ${hiddenCategories.length ? `<button class="chip chip-more" id="moreCategoriesBtn" onclick="toggleMoreCategories()">More ▾</button>` : ''}
-        <span class="more-categories" id="moreCategories" style="display:none">${hiddenCategories.map(renderChip).join('')}</span>`;
+      if (extras.length > 0) {
+        container.insertAdjacentHTML('beforeend', `<button class="category-more" id="categoryMoreBtn" onclick="toggleMoreCategories(this)">More ▾</button>`);
+        container.insertAdjacentHTML('beforeend', `<div class="category-extra" id="categoryExtra">${extras.map(cat => `
+          <button class="chip ${cat === activeCategory ? 'active' : ''}" onclick="filterCategory('${cat}', this)">${cat}</button>
+        `).join('')}</div>`);
+      }
 
       buildMedicineSubCategories(products);
     }
 
-    function toggleMoreCategories() {
-      const more = document.getElementById('moreCategories');
-      const btn = document.getElementById('moreCategoriesBtn');
-      if (!more || !btn) return;
-      const isOpen = more.style.display !== 'none';
-      more.style.display = isOpen ? 'none' : 'contents';
-      btn.textContent = isOpen ? 'More ▾' : 'Less ▴';
+    function toggleMoreCategories(btn) {
+      const extra = document.getElementById('categoryExtra');
+      if (!extra) return;
+      const open = extra.classList.toggle('open');
+      btn.classList.toggle('active', open);
+      btn.textContent = open ? 'More ▴' : 'More ▾';
     }
 
     function buildMedicineSubCategories(products) {
@@ -1441,6 +1472,13 @@
       activeSubCategory = 'All';
       document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
       btn.classList.add('active');
+
+      const extra = document.getElementById('categoryExtra');
+      const moreBtn = document.getElementById('categoryMoreBtn');
+      if (extra && extra.contains(btn)) {
+        extra.classList.add('open');
+        if (moreBtn) { moreBtn.classList.add('active'); moreBtn.textContent = 'More ▴'; }
+      }
 
       const subBar = document.getElementById('subCategoryBar');
       if (cat === 'Medicine') {
@@ -1908,11 +1946,11 @@
           row.className = 'cart-item-row';
           row.dataset.itemId = itemId;
           row.innerHTML = `
+            <button class="btn-remove-item" onclick="removeFromCart('${prod.item_ID}')" title="Remove item">✕</button>
             ${imageHtml}
             <div class="cart-item-details-wrapper">
               <div class="cart-item-top">
                 <div class="cart-item-name">${escapeHtml(prod.Item_Name)}</div>
-                <button class="btn-remove-item" onclick="removeFromCart('${prod.item_ID}')" title="Remove item">✕</button>
               </div>
               <div class="cart-item-bottom">
                 <div class="cart-item-details">${price.toFixed(2)} ETB ${unitName ? `/ ${escapeHtml(unitName)}` : ''}</div>
@@ -1922,7 +1960,7 @@
                   <button class="btn-qty" onclick="updateQty('${prod.item_ID}', 1, ${maxQty})">+</button>
                 </div>
               </div>
-              <div style="font-size: 10px; color: var(--text-muted); text-align: right; margin-top: 1px;">
+              <div style="font-size: 11px; color: var(--text-muted); text-align: right; margin-top: 2px;">
                 Subtotal: <span class="cart-item-subtotal">${subtotal.toFixed(2)} ETB</span>
               </div>
             </div>
