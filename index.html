@@ -71,14 +71,25 @@
     }
 
     .store-title {
-      font-size: 17px;
-      font-weight: 800;
-      letter-spacing: -0.2px;
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 20px;
+  color: #ffffff;
+}
+
+.store-title img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  display: block;
+  background: #055c4e;
+  border: 2px solid #de9d23;
+  border-radius: 10px;
+  padding: 3px;
+  box-sizing: border-box;
+}
 
     .store-subtitle {
       font-size: 10px;
@@ -1216,7 +1227,10 @@
   <div class="sticky-nav-wrapper">
     <div class="header">
       <div class="store-brand">
-        <div class="store-title">💊 Babel Pharmacy</div>
+        <div class="store-title">
+  <img src="images/babel-logo.png" alt="Babel Pharmacy Logo">
+  <span>Babel Pharmacy</span>
+</div>
 
         <div style="display:flex; align-items:center; gap:7px;">
           <div class="store-subtitle">Your trusted pharmacy</div>
