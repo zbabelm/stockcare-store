@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1426,6 +1425,7 @@
 
     const cachedProducts = localStorage.getItem('stockcare_catalog_cache');
 
+    // Show cached catalog immediately so returning visitors do not wait for the API.
     if (cachedProducts) {
       try {
         prepareCatalog(JSON.parse(cachedProducts));
@@ -1450,58 +1450,68 @@
       indexProducts(allProducts);
     }
 
-    fetch(`${API_URL}/?action=getCatalog`)
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-        return res.json();
-      })
-      .then(data => {
-        if (data && data.status === 'success' && Array.isArray(data.products) && data.products.length > 0) {
-          const freshProducts = data.products.filter(prod => {
-            const isNotExpired = (prod.Stock_Status || '').toLowerCase() !== 'expired';
-            const qtyAvailable = parseFloat(prod.Total_Qty_Bridge || 0) > 0;
-            return isNotExpired && qtyAvailable;
-          });
+    // Refresh the catalog in the background.
+    // If cached products are already visible, the user does not have to wait.
+    function refreshCatalog() {
+      fetch(`${API_URL}/?action=getCatalog`)
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+          return res.json();
+        })
+        .then(data => {
+          if (data && data.status === 'success' && Array.isArray(data.products) && data.products.length > 0) {
+            const freshProducts = data.products.filter(prod => {
+              const isNotExpired = (prod.Stock_Status || '').toLowerCase() !== 'expired';
+              const qtyAvailable = parseFloat(prod.Total_Qty_Bridge || 0) > 0;
+              return isNotExpired && qtyAvailable;
+            });
 
-          prepareCatalog(freshProducts);
+            // Save only the filtered catalog to cache.
+            localStorage.setItem('stockcare_catalog_cache', JSON.stringify(freshProducts));
 
-          localStorage.setItem('stockcare_catalog_cache', JSON.stringify(allProducts));
+            // Update the catalog with the newest data.
+            prepareCatalog(freshProducts);
 
+            if (allProducts.length === 0) {
+              document.getElementById('catalog').innerHTML = `
+                <div class="empty-state">
+                  <div class="empty-state-icon">📦</div>
+                  <div class="empty-state-title">No Stock Available</div>
+                  <div class="empty-state-desc">There are no active products currently in stock.</div>
+                </div>`;
+              return;
+            }
+
+            buildCategoryChips(allProducts);
+            renderCatalog();
+            updateTotals();
+
+          } else if (allProducts.length === 0) {
+            document.getElementById('catalog').innerHTML = `
+              <div class="empty-state">
+                <div class="empty-state-icon">🏷️</div>
+                <div class="empty-state-title">Catalog Empty</div>
+                <div class="empty-state-desc">No products available at the moment.</div>
+              </div>`;
+          }
+        })
+        .catch(err => {
+          console.error("Catalog Fetch Error:", err);
+
+          // If cached products are visible, keep them and do not replace them with an error.
           if (allProducts.length === 0) {
             document.getElementById('catalog').innerHTML = `
               <div class="empty-state">
-                <div class="empty-state-icon">📦</div>
-                <div class="empty-state-title">No Stock Available</div>
-                <div class="empty-state-desc">There are no active products currently in stock.</div>
+                <div class="empty-state-icon">⚠️</div>
+                <div class="empty-state-title">Connection Failed</div>
+                <div class="empty-state-desc">Failed to load items: ${err.message}</div>
               </div>`;
-            return;
           }
+        });
+    }
 
-          buildCategoryChips(allProducts);
-          renderCatalog();
-          updateTotals();
-
-        } else if (allProducts.length === 0) {
-          document.getElementById('catalog').innerHTML = `
-            <div class="empty-state">
-              <div class="empty-state-icon">🏷️</div>
-              <div class="empty-state-title">Catalog Empty</div>
-              <div class="empty-state-desc">No products available at the moment.</div>
-            </div>`;
-        }
-      })
-      .catch(err => {
-        console.error("Catalog Fetch Error:", err);
-
-        if (allProducts.length === 0) {
-          document.getElementById('catalog').innerHTML = `
-            <div class="empty-state">
-              <div class="empty-state-icon">⚠️</div>
-              <div class="empty-state-title">Connection Failed</div>
-              <div class="empty-state-desc">Failed to load items: ${err.message}</div>
-            </div>`;
-        }
-      });
+    // Start the background refresh without blocking the initial cached display.
+    refreshCatalog();
 
     function isStandaloneCategory(catName) {
       const name = (catName || '').trim().toLowerCase();
@@ -2539,4 +2549,3 @@
   </script>
 </body>
 </html>
-```
